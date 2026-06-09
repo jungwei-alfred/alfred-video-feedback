@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>影片回饋 — 互動原型與規格 v2</title>
+<style>
+  :root{
+    --teal:#5f8e87;--bg:#f4f5f7;--ink:#1f2329;--muted:#6b7280;--line:#e5e7eb;
+    --accent:#2f6fed;--up:#16a34a;--down:#dc2626;--warn:#f59e0b;--card:#fff;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Noto Sans TC",sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+  header.page h1{font-size:22px;margin:0 0 4px;}
+  header.page p{margin:0;color:var(--muted);font-size:14px;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 22px;align-items:center;}
+  .toolbar .seg{display:flex;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .toolbar .seg button{border:0;background:#fff;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--muted);}
+  .toolbar .seg button.active{background:var(--accent);color:#fff;}
+  .toolbar .hint{font-size:12.5px;color:var(--muted);}
+  .pillbtn{background:#eef0f2;color:#333;border:1px solid var(--line);border-radius:18px;padding:8px 14px;font-size:13px;cursor:pointer;}
+
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:start;}
+  @media (max-width:880px){.layout{grid-template-columns:1fr;}}
+
+  .phone{width:360px;margin:0 auto;background:#000;border-radius:38px;padding:10px;box-shadow:0 18px 50px rgba(0,0,0,.28);position:sticky;top:18px;}
+  .screen{position:relative;border-radius:30px;overflow:hidden;background:#000;aspect-ratio:360/740;}
+  .statusbar{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;color:#fff;font-size:12px;background:var(--teal);}
+  .navbar{height:46px;background:var(--teal);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;position:relative;}
+  .navbar .back{position:absolute;left:14px;font-size:18px;}
+  .navbar .more{position:absolute;right:14px;font-size:18px;cursor:pointer;}
+
+  /* feedback overlaid on the player (original 回報 entry position, bottom-right) */
+  .fbbar{
+    position:absolute;right:10px;bottom:46px;display:flex;align-items:center;gap:8px;z-index:6;transition:.3s ease;
+  }
+  .fbbar.gone{opacity:0;pointer-events:none;transform:translateY(4px);}
+  .fbtn{
+    background:rgba(40,44,42,.82);border:1px solid transparent;color:#fff;border-radius:18px;height:34px;min-width:38px;
+    padding:0 12px;font-size:15px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;transition:.18s;backdrop-filter:blur(2px);
+  }
+  .fbtn .lbl{font-size:12px;}
+  .fbtn:active{transform:scale(.92);}
+  .fbtn.sel-up{background:var(--up);border-color:var(--up);color:#fff;}
+  .fbtn.sel-down{background:var(--down);border-color:var(--down);color:#fff;}
+  /* A/B variants: B shows 👍/👎, A shows only 回報 */
+  #btnReportA{display:none;}
+  .fbbar.variant-a #btnUp,.fbbar.variant-a #btnDown{display:none;}
+  .fbbar.variant-a #btnReportA{display:inline-flex;}
+  @keyframes nudge{0%{transform:scale(1);}30%{transform:scale(1.18);}60%{transform:scale(.96);}100%{transform:scale(1);}}
+  .fbbar.emph .fbtn.pulse{animation:nudge .5s ease;}
+
+  .video{position:relative;background:#000;height:262px;display:flex;align-items:flex-end;}
+  .scene{width:100%;height:200px;background:linear-gradient(180deg,#cdd3d0 0%,#9aa39f 55%,#6f6f6f 100%);}
+  .ts{position:absolute;top:8px;left:10px;color:#cfcfcf;font-size:10px;font-family:monospace;text-shadow:0 1px 2px #000;}
+  .wm{position:absolute;right:10px;bottom:60px;color:#d8d8d8;font-size:11px;font-weight:600;opacity:.8;}
+  .sound{position:absolute;top:8px;right:10px;background:rgba(40,44,42,.7);color:#fff;font-size:11px;padding:5px 10px;border-radius:14px;transition:.3s;}
+  /* control row that auto-hides — note: feedback bar is NOT here, so it survives */
+  .scrubber{position:absolute;left:0;right:0;bottom:8px;display:flex;align-items:center;gap:10px;padding:0 14px;color:#eee;font-size:11px;transition:.3s;}
+  .video.hidectrl .scrubber,.video.hidectrl .sound,.video.hidectrl .fbbar{opacity:0;pointer-events:none;}
+  .scrubber .play{font-size:16px;cursor:pointer;}
+  .track{flex:1;height:3px;background:rgba(255,255,255,.35);border-radius:2px;position:relative;}
+  .track .dot{position:absolute;top:50%;width:9px;height:9px;background:#fff;border-radius:50%;transform:translate(-50%,-50%);transition:left .2s;}
+  .bigplay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:46px;color:rgba(255,255,255,.85);cursor:pointer;}
+  .video.paused .bigplay{display:flex;}
+
+  .footer{height:60px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
+  .footer .ico{font-size:20px;color:var(--warn);cursor:pointer;}
+  .footer .view{border:1px solid var(--line);border-radius:18px;padding:7px 18px;font-size:13px;}
+
+  .toast{position:absolute;left:50%;bottom:84px;transform:translateX(-50%) translateY(8px);background:rgba(20,22,21,.92);color:#fff;font-size:12.5px;padding:8px 16px;border-radius:18px;opacity:0;pointer-events:none;transition:.25s;white-space:nowrap;z-index:8;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .sheet-mask{position:absolute;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.2s;z-index:9;}
+  .sheet-mask.show{opacity:1;pointer-events:auto;}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:18px 18px 22px;transform:translateY(100%);transition:.28s;z-index:10;}
+  .sheet.show{transform:translateY(0);}
+  .sheet .close{position:absolute;left:14px;top:12px;font-size:18px;cursor:pointer;color:#333;}
+  .sheet h3{text-align:center;font-size:16px;margin:6px 0 2px;}
+  .sheet .sub{text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .chip{border:1px solid var(--line);border-radius:18px;padding:7px 12px;font-size:12.5px;cursor:pointer;color:#333;background:#fff;}
+  .chip.on{border-color:var(--accent);background:#eaf1fe;color:var(--accent);}
+  .chip.other.on{border-color:var(--warn);background:#fff6e6;color:#b4790c;}
+  .otherbox{display:flex;gap:8px;align-items:flex-start;margin:2px 0 12px;}
+  .otherbox textarea{flex:1;border:2px solid var(--warn);border-radius:8px;padding:8px;font-size:12.5px;resize:none;height:54px;font-family:inherit;display:none;}
+  .otherbox textarea.show{display:block;}
+  .charcount{display:none;text-align:right;font-size:10.5px;color:var(--muted);margin:-6px 0 10px;}
+  .charcount.show{display:block;}
+  .charcount.max{color:var(--down);}
+  .consent{display:flex;gap:9px;align-items:flex-start;font-size:11.5px;color:#444;border-top:1px solid var(--line);padding-top:12px;margin-bottom:12px;}
+  .consent input{margin-top:2px;}
+  .submit{width:100%;border:0;border-radius:8px;padding:13px;font-size:14px;background:#d6d8dc;color:#9aa0a6;cursor:not-allowed;}
+  .submit.ready{background:var(--teal);color:#fff;cursor:pointer;}
+  /* video-authorization dialog (after 👍) */
+  .upscope{margin:0 0 14px;padding-left:18px;}
+  .upscope li{font-size:11.5px;color:#555;margin-bottom:4px;}
+  .up-actions{display:flex;gap:8px;}
+  .up-actions button{flex:1;border:0;border-radius:8px;padding:13px;font-size:14px;cursor:pointer;}
+  .up-actions .skip{background:#eef0f2;color:#555;}
+  .up-actions .go{background:var(--teal);color:#fff;}
+
+  .pin{position:absolute;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.4);z-index:11;transition:.15s;}
+  .pin:hover{transform:scale(1.15);}
+  .pin.hidden{display:none;}
+
+  .spec h2{font-size:16px;margin:4px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--line);}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;}
+  .card.note{border-left:4px solid var(--accent);}
+  .card .ntag{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;margin-right:8px;}
+  .card h4{margin:0 0 6px;font-size:14.5px;}
+  .card p{margin:0 0 6px;font-size:13.5px;color:#374151;}
+  .card ul{margin:6px 0 0;padding-left:18px;}
+  .card li{font-size:13px;color:#374151;margin-bottom:4px;}
+  .card.note.highlight{box-shadow:0 0 0 3px rgba(47,111,237,.25);}
+  table.matrix{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  table.matrix th,table.matrix td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  table.matrix th{background:#f8fafc;font-weight:600;}
+  .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600;}
+  .tag.no{background:#fef2f2;color:#dc2626;}.tag.yes{background:#ecfdf5;color:#059669;}
+  .decision{border-left:4px solid var(--warn);}
+  .decision h4::before{content:"⚖︎ ";}
+  .opt{font-size:12.5px;color:#374151;margin:4px 0;padding-left:4px;}
+  .opt b{color:#b4790c;}
+  .legend{font-size:12px;color:var(--muted);margin-top:4px;}
+  /* top tabs (Prototype / PRD) */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:6px 0 18px;}
+  .tabs button{border:0;background:transparent;padding:10px 16px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+  .tabs button.active{color:var(--accent);border-bottom-color:var(--accent);}
+  [hidden]{display:none !important;}
+  /* PRD doc */
+  .prd{max-width:880px;}
+  .prd .meta{border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:13px;color:#374151;margin-bottom:8px;}
+  .prd .meta.ssot{border-left:4px solid var(--accent);background:#eef4ff;}
+  .prd .meta b{color:#1f2329;}
+  .prd h2{font-size:18px;margin:26px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line);}
+  .prd h3{font-size:15px;margin:18px 0 6px;color:#111827;}
+  .prd p{font-size:14px;color:#374151;margin:0 0 10px;}
+  .prd ul{margin:6px 0 12px;padding-left:20px;}
+  .prd li{font-size:13.5px;color:#374151;margin-bottom:5px;}
+  .prd table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 14px;}
+  .prd th,.prd td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  .prd th{background:#f8fafc;font-weight:600;}
+  .prd .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:#eef2f7;color:#475569;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <h1>影片回饋 — 互動原型與規格 <span style="color:var(--accent);font-size:14px;">v2</span></h1>
+    <p>👍 / 👎 疊在播放畫面右下角（原「回報」入口處），跟控制列一起 auto-hide；暫停 / 結束時微動畫強調。按過即送出、按鈕淡出消失（一次定論，不可反悔）。👍 帶出影片「同意分享」dialog，👎 帶出回報表單。</p>
+  </header>
+
+  <div class="tabs" id="tabs">
+    <button data-view="proto" class="active">原型 + 規格</button>
+    <button data-view="prd">PRD</button>
+  </div>
+
+  <div id="viewProto">
+  <div class="toolbar">
+    <div class="seg" id="variantSeg">
+      <button data-variant="B" class="active">B：新版 👍/👎</button>
+      <button data-variant="A">A：原始（回報）</button>
+    </div>
+    <div class="seg" id="annoSeg">
+      <button data-anno="on" class="active">顯示規格標註</button>
+      <button data-anno="off">純原型</button>
+    </div>
+    <button class="pillbtn" id="pauseBtn">⏸ 模擬：暫停 / 看完（觸發強調）</button>
+    <button class="pillbtn" id="resetBtn">↺ 重置</button>
+    <span class="hint">提示：上方可切 A/B 變體；先按「暫停/看完」讓畫面上的入口出現；點 👍/👎 開 sheet，事件在關閉 sheet 後才送出，按鈕隨即消失（不可反悔）。</span>
+  </div>
+
+  <div class="layout">
+    <!-- PHONE -->
+    <div class="phone">
+      <div class="screen">
+        <div class="statusbar"><span>10:22</span><span>📶 📶 🔋</span></div>
+        <div class="navbar"><span class="back">‹</span>10:03:09<span class="more" id="moreBtn">⋯</span></div>
+
+        <div class="video paused" id="video">
+          <div class="sound">聲音 ⋯</div>
+          <span class="ts">2026-06-04 10:03:11</span>
+          <div class="scene"></div>
+          <span class="wm">AlfredCamera</span>
+          <div class="bigplay" id="bigplay">▶</div>
+
+          <!-- feedback overlaid on the player (where the original 回報 entry was) -->
+          <div class="fbbar" id="fbbar">
+            <button class="fbtn" id="btnUp" title="讚"><span>👍</span></button>
+            <button class="fbtn" id="btnDown" title="倒讚"><span>👎</span></button>
+            <button class="fbtn" id="btnReportA" title="回報"><span>💬</span><span class="lbl">回報</span></button>
+            <div class="pin" id="pin1" style="left:-12px;top:-12px;">1</div>
+            <div class="pin" id="pin2" style="right:-12px;top:-12px;">2</div>
+          </div>
+
+          <div class="scrubber">
+            <span class="play" id="playSm">▶</span><span>00:01</span>
+            <div class="track"><div class="dot" id="dot" style="left:24%;"></div></div>
+            <span>00:11</span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <span class="ico">⤓</span><span class="view">查看此回放</span><span class="ico">🗑</span>
+        </div>
+
+        <div class="toast" id="toast">感謝你的回饋 🙏</div>
+
+        <!-- report sheet -->
+        <div class="sheet-mask" id="sheetMask"></div>
+        <div class="sheet" id="sheet">
+          <span class="close" id="sheetClose">✕</span>
+          <h3>提供影片反饋</h3>
+          <div class="sub" id="sheetSub">協助我們了解這支影片有哪些問題（可複選）</div>
+          <div class="chips" id="chips">
+            <span class="chip">動態誤報</span>
+            <span class="chip">不正確的事件偵測類型</span>
+            <span class="chip">錄影中斷或不完整</span>
+            <span class="chip">畫面破損</span>
+            <span class="chip">聲音破損/沒有聲音</span>
+            <span class="chip">太亮或太暗</span>
+            <span class="chip">無法播放影片</span>
+          </div>
+          <div class="otherbox">
+            <span class="chip other" id="otherChip">其他</span>
+            <textarea id="otherText" maxlength="100" placeholder="請描述你遇到的狀況…（上限 100 字）"></textarea>
+            <div class="pin" id="pin4" style="right:6px;top:-12px;">4</div>
+          </div>
+          <div class="charcount" id="charCount">0/100</div>
+          <label class="consent">
+            <input type="checkbox" id="consent">
+            <span>我同意授權阿福管家蒐集此影片資訊以優化產品效能。
+              <span class="pin" id="pin5" style="position:static;display:inline-flex;vertical-align:middle;margin-left:4px;">5</span>
+            </span>
+          </label>
+          <button class="submit" id="submit">送出</button>
+        </div>
+
+        <!-- video-authorization dialog, shown after 👍 -->
+        <div class="sheet-mask" id="upMask"></div>
+        <div class="sheet" id="upsheet">
+          <span class="close" id="upClose">✕</span>
+          <h3>謝謝你的回饋 🎉</h3>
+          <div class="sub">願意分享這支影片，協助我們優化偵測品質嗎？
+            <span class="pin" id="pin6" style="position:static;display:inline-flex;vertical-align:middle;margin-left:4px;">6</span>
+          </div>
+          <ul class="upscope">
+            <li>僅這一支影片，僅工程團隊用於改善</li>
+          </ul>
+          <div class="up-actions">
+            <button class="skip" id="upDecline">下次再說</button>
+            <button class="go" id="upAgree">同意分享</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPEC -->
+    <div class="spec">
+      <h2>規格說明</h2>
+
+      <div class="card note" id="card1">
+        <h4><span class="ntag">1</span>位置：疊在播放器右下角（原「回報」入口處）</h4>
+        <p>👍 / 👎 放在播放畫面右下角，即原本「回報」按鈕出現的位置，沿用既有入口的直覺。</p>
+        <ul>
+          <li>跟播放控制列一起 auto-hide：播放時隱藏、暫停 / 結束時顯示 → 按「暫停/看完」觀察。</li>
+          <li>權衡：貼近原入口、較直覺，但會稍微遮到畫面，且播放時看不到（與控制列連動）。</li>
+        </ul>
+      </div>
+
+      <div class="card note" id="card2">
+        <h4><span class="ntag">2</span>暫停 / 結束時強調</h4>
+        <p>在<b>播放暫停或結束</b>那一刻，對 👍 / 👎 做一次微動畫（nudge），精準捕捉「看完」的時間點。</p>
+        <p class="legend">用「暫停/看完」按鈕觀察按鈕 pulse 動畫。</p>
+      </div>
+
+      <div class="card note" id="card3">
+        <h4><span class="ntag">2</span>讚 / 倒讚：按過即鎖定，slim bar 消失</h4>
+        <p>給完回饋即視為<b>確實送出</b>，不可切換或反悔——已選 highlight 後整條 slim bar 收合消失。</p>
+        <ul>
+          <li>目的：避免用戶切來切去，難以判斷真實評價；一支影片一次定論。</li>
+          <li>消失前以 toast 確認（「感謝你的回饋」），讓用戶知道已送出。</li>
+          <li>單純「回報」（未按 emoji）則須等表單<b>實際送出</b>後 bar 才消失；中途關閉表單，bar 保留。</li>
+        </ul>
+      </div>
+
+      <div class="card note" id="card4">
+        <h4><span class="ntag">4</span>點 👎 → 送出 + 自動開回報 bottom sheet</h4>
+        <p>倒讚本身即視為送出（大盤負向訊號），slim bar 隨即收合；<b>同時</b>自動帶出回報表單，讓想說明原因的人無縫接續。不填也沒關係，👎 訊號已記錄。</p>
+        <p class="legend">已移除 slim bar 上的獨立「回報」按鈕——回報表單改由 👎 觸發（或右上 ⋯ 的既有深層入口），回饋列只留 👍 / 👎 更精簡。</p>
+      </div>
+
+      <div class="card note" id="card5">
+        <h4><span class="ntag">5</span>授權鎖（回報表單）</h4>
+        <p>詳細回報仍須勾選授權才能送出；未勾選時「送出」維持 disabled。讚 / 倒讚不受此限。「其他」可開放式填答（須勾選「其他」展開輸入框，內容也計入可送出條件）。</p>
+        <p class="legend">「其他」字數上限 <b>100 字</b>，對齊 Firebase Analytics 事件參數值上限（100 半形字元）；接近上限（≥80）才顯示計數器，滿 100 轉紅。</p>
+      </div>
+
+      <div class="card note" id="card6">
+        <h4><span class="ntag">6</span>👍 後跳「同意分享」dialog</h4>
+        <p>點 👍 即送出正向訊號（slim bar 收合），<b>隨即</b>彈出影片分享詢問「願意分享這支影片，協助我們優化偵測品質嗎？」，用滿意當下的時機爭取分享。</p>
+        <ul>
+          <li>「同意分享 / 下次再說」雙鍵，明確主動同意（不預設）。</li>
+          <li>左上 X 或點背景遮罩皆可關閉，👍 已記錄、不受分享與否影響；無「選填」字樣。</li>
+          <li>僅保留一行範圍說明（僅這支、僅工程團隊）。</li>
+        </ul>
+      </div>
+
+      <h2 style="margin-top:24px;">授權 vs 互動對照</h2>
+      <table class="matrix">
+        <tr><th>互動</th><th>需影片授權</th><th>送出方式</th><th>送出後</th></tr>
+        <tr><td>👍 讚</td><td><span class="tag yes">免授權</span></td><td>選取 → 開分享 dialog → 關閉時才送出</td><td>鎖定，bar 消失</td></tr>
+        <tr><td>👎 倒讚</td><td><span class="tag yes">免授權</span></td><td>選取 → 開回報 → 關閉時才送出</td><td>鎖定，bar 消失</td></tr>
+        <tr><td>💬 回報</td><td><span class="tag no">需授權</span></td><td>選項/其他 + 勾選授權</td><td>送出後 bar 消失</td></tr>
+      </table>
+
+      <h2 style="margin-top:24px;">待討論決策點</h2>
+      <div class="card decision">
+        <h4>事件發送時機（已更新）</h4>
+        <div class="opt"><b>本版採：</b>無論 👍 或 👎，點擊只負責「選取 + 開啟 bottom sheet」，<b>事件一律在使用者關閉 sheet 後才發送</b>（送出、同意分享、下次再說、X、點遮罩都算關閉）。</div>
+        <div class="opt">好處：一次寫入完整事件（含分享與否 / 回報內容），避免「先送一筆、後補一筆」的重複或拆裂；不填也仍會送出 emoji 訊號。</div>
+      </div>
+      <div class="card decision">
+        <h4>強調時機</h4>
+        <div class="opt"><b>建議：</b>暫停 + 播放結束都觸發一次強調；避免重複強調造成干擾（同一支只 nudge 一次）。</div>
+      </div>
+      <div class="card decision">
+        <h4>誤觸無法挽回</h4>
+        <div class="opt">鎖死 + bar 消失代表誤觸即定論。可評估誤觸率後，再決定是否要加回「收回」緩衝或其他補救機制。</div>
+      </div>
+
+      <div class="card decision">
+        <h4>👍 後跳授權 dialog 的摩擦取捨</h4>
+        <div class="opt"><b>權衡：</b>👍 本是最低門檻的正向動作，剛給好評就被要影片授權，可能有「給讚反被索取」的觀感、降低 👍 完成率。務必維持「明顯可關閉、👍 已先記錄」。</div>
+        <div class="opt">替代：只對部分流量 / 前幾次 👍 才跳；或不每支都問。值得 A/B 看授權同意率 vs 👍 完成率。</div>
+      </div>
+      <div class="card decision">
+        <h4>👍/👎 語意維度</h4>
+        <div class="opt"><b>建議：</b>收斂為單一維度（影片是否有幫助），引導語明確，否則大盤難解讀。</div>
+      </div>
+      <div class="card decision">
+        <h4>埋點（第一天就上）</h4>
+        <div class="opt">事件類型、相機型號、偵測類型、App 版本、時間 + 是否經強調觸發 + <b>變體（A / B）</b>。事件於關閉 sheet 時寫入，附帶：分享與否、回報選項、其他文字（≤100 字）。</div>
+      </div>
+
+      <h2 style="margin-top:24px;">A/B 測試規格</h2>
+      <div class="card">
+        <h4>假設</h4>
+        <p>把入口從單一「回報」按鈕（A）換成 👍 / 👎（B），能降低回饋門檻、收到更多回饋，且不犧牲回報品質。上方工具列可切 A / B 實際比較。</p>
+        <h4 style="margin-top:10px;">變體</h4>
+        <p><b>A 對照組：</b>播放器右下角僅一顆「回報」按鈕（現況入口）。<br><b>B 實驗組：</b>同位置改為 👍 / 👎（👎 帶出回報、👍 帶出分享）。</p>
+        <h4 style="margin-top:10px;">主要指標</h4>
+        <ul>
+          <li><b>入口點擊率（CTR）：</b>點擊回饋入口的觀看數 ÷ 回放觀看總數。A = 點「回報」；B = 點 👍 或 👎。</li>
+          <li><b>回報成功率：</b>完成送出回報 ÷ 開啟回報表單。A 由「回報」進入；B 由 👎 進入。</li>
+        </ul>
+        <h4 style="margin-top:10px;">次要指標</h4>
+        <p>每次觀看的回饋率、👍:👎 比、影片分享同意率、「其他」填寫率、誤觸 / 取消率。</p>
+        <h4 style="margin-top:10px;">分流與期間</h4>
+        <p>使用者層級隨機分派，同一使用者固定看同一變體；跑到統計顯著或至少 1–2 週（涵蓋週末）。</p>
+        <h4 style="margin-top:10px;">注意</h4>
+        <p>兩版「入口」的語意不同（A 只有回報；B 多了純 emoji），CTR 不能直接劃等號——需各自定義入口事件，並把「總回饋量」與「回報量」分開看。</p>
+      </div>
+    </div>
+  </div>
+  </div><!-- /viewProto -->
+
+  <div id="viewPrd" hidden>
+    <div class="prd">
+      <div class="meta ssot">
+        <b>單一真實來源（SSOT）：</b>本 PRD 與左側「原型 + 規格」同處一個 HTML 檔。每次調整原型互動時，請<b>一併更新此 PRD 與下方變更記錄</b>，確保兩者永遠一致、不 drift。
+      </div>
+      <div class="meta">
+        <b>產品：</b>AlfredCamera — 影片回饋（Event Player）　|　<b>版本：</b>v2（原型）　|　<b>最後更新：</b>2026-06-08　|　<b>狀態：</b><span class="pill">Draft / 待 PO 討論</span>　|　<b>負責人：</b>jungwei
+      </div>
+
+      <h2>1. 背景與問題</h2>
+      <p>目前影片回饋的入口都在 Event Player 內，且都偏深：(1) 右上 ⋯ More 裡的「提供影片反饋」（藏得深）；(2) 影片暫停時右下角的「回報」（需符合特定條件才出現）。點進去後只有可複選的問題選項、沒有開放式填答，且都必須勾選影片授權才能送出。</p>
+      <p>結果是回饋門檻高、樣本少，也缺少一個能看「整體滿意度趨勢」的輕量訊號。</p>
+
+      <h2>2. 目標與非目標</h2>
+      <h3>目標</h3>
+      <ul>
+        <li>提供更直覺、低門檻的回饋入口，提高回饋率。</li>
+        <li>用 👍 / 👎 取得可看大盤趨勢的滿意度訊號（免影片授權）。</li>
+        <li>負向情境順勢收集可診斷的細節（回報表單 + 開放填答）。</li>
+        <li>以 A/B 驗證新入口優於現況，再決定全量。</li>
+      </ul>
+      <h3>非目標</h3>
+      <ul>
+        <li>不在本期重構 More / 既有深層回報入口（保留為備援）。</li>
+        <li>不為了提高影片授權率而使用預設打勾等 dark pattern。</li>
+      </ul>
+
+      <h2>3. 成功指標</h2>
+      <ul>
+        <li><b>主要：</b>入口點擊率（CTR）、回報成功率（完成送出 ÷ 開啟表單）。</li>
+        <li><b>次要：</b>每次觀看回饋率、👍:👎 比、影片分享同意率、「其他」填寫率、誤觸/取消率。</li>
+      </ul>
+
+      <h2>4. 使用者故事</h2>
+      <ul>
+        <li>身為使用者，看完一段回放後，我想用一鍵 👍 / 👎 快速表達好不好，不必填表單。</li>
+        <li>身為使用者，當影片有問題時，我想順手選問題類型、必要時補一句說明。</li>
+        <li>身為 PM，我想看大盤滿意度趨勢，並能切維度找出哪類事件 / 機型滿意度偏低。</li>
+      </ul>
+
+      <h2>5. 功能需求</h2>
+      <h3>5.1 入口位置與顯示</h3>
+      <p>👍 / 👎 疊在播放畫面右下角（即原「回報」按鈕位置），跟播放控制列一起 auto-hide：播放時隱藏、暫停 / 結束時顯示。暫停或結束那一刻對按鈕做一次 nudge 微動畫，捕捉「看完」時機。</p>
+      <h3>5.2 讚 / 倒讚行為</h3>
+      <ul>
+        <li>點擊只負責「選取（highlight）+ 開啟對應 bottom sheet」；單選互斥。</li>
+        <li><b>事件一律在使用者關閉 sheet 後才發送</b>（送出、同意分享、下次再說、X、點遮罩皆算關閉），一次寫入完整事件。</li>
+        <li>送出後鎖定、按鈕淡出消失（一次定論，不可反悔）。</li>
+        <li>👍 / 👎 免影片授權。</li>
+      </ul>
+      <h3>5.3 👎 → 回報表單</h3>
+      <p>👎 帶出回報 bottom sheet：可複選問題類型；「其他」展開開放式填答，上限 <b>100 字</b>（對齊 Firebase Analytics 事件參數值上限），接近上限（≥80）才顯示計數器、滿 100 轉紅。詳細回報須勾選影片授權才能送出。</p>
+      <h3>5.4 👍 → 同意分享 dialog</h3>
+      <p>👍 帶出影片「同意分享」dialog：「願意分享這支影片，協助我們優化偵測品質嗎？」配「同意分享 / 下次再說」雙鍵（不預設），含一行範圍說明（僅這支、僅工程團隊），左上 X 與點遮罩皆可關閉。分享與否不影響 👍 已被記錄。</p>
+      <h3>5.5 備援入口</h3>
+      <p>右上 ⋯ More 的「提供影片反饋」保留為既有深層入口。</p>
+
+      <h2>6. 埋點規格</h2>
+      <p>事件於關閉 sheet 時寫入，至少包含：事件類型、相機型號、偵測類型、App 版本、時間、是否經強調觸發、<b>變體（A / B）</b>，並依情境附帶：分享與否、回報選項、其他文字（≤100 字）。</p>
+
+      <h2>7. A/B 測試計畫</h2>
+      <p><b>假設：</b>把入口從單一「回報」按鈕（A）換成 👍 / 👎（B），能降低回饋門檻、收到更多回饋，且不犧牲回報品質。</p>
+      <table>
+        <tr><th>項目</th><th>A 對照組</th><th>B 實驗組</th></tr>
+        <tr><td>入口</td><td>右下角僅「回報」按鈕</td><td>右下角 👍 / 👎</td></tr>
+        <tr><td>進入回報</td><td>點「回報」</td><td>點 👎</td></tr>
+        <tr><td>正向訊號</td><td>無</td><td>👍（+ 同意分享）</td></tr>
+      </table>
+      <p><b>主要指標：</b>入口 CTR、回報成功率。<b>分流：</b>使用者層級隨機，同一使用者固定看同一變體。<b>期間：</b>跑到統計顯著或至少 1–2 週（涵蓋週末）。</p>
+      <p><b>注意：</b>兩版入口語意不同（A 只有回報、B 多了純 emoji），CTR 不能直接劃等號——需各自定義入口事件，並把「總回饋量」與「回報量」分開看。</p>
+
+      <h2>8. 待討論決策點</h2>
+      <ul>
+        <li>事件發送時機：本版採「關閉 sheet 後發送」。</li>
+        <li>誤觸無法挽回：鎖死 + 消失，是否視誤觸率加回「收回」緩衝。</li>
+        <li>👍 後跳分享 dialog 的摩擦：是否只對部分流量 / 前幾次顯示。</li>
+        <li>👍 / 👎 語意維度：建議收斂為「影片是否有幫助」。</li>
+        <li>影片授權：是否值得另做提高同意率的優化（拆開、contextual、文案）。</li>
+      </ul>
+
+      <h2>9. 變更記錄</h2>
+      <table>
+        <tr><th>日期</th><th>變更</th></tr>
+        <tr><td>2026-06-08</td><td>事件改為「關閉 bottom sheet 後才發送」（讚 / 倒讚一致）；新增 A/B 變體切換與測試規格；「其他」加 100 字上限 + 計數器；👍 後改為影片「同意分享」dialog；入口移至播放器右下角（原回報位置）；移除「收回」浮層。</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var video=document.getElementById('video');
+  var fbbar=document.getElementById('fbbar');
+  var btnUp=document.getElementById('btnUp'), btnDown=document.getElementById('btnDown');
+  var toast=document.getElementById('toast');
+  var sheet=document.getElementById('sheet'), sheetMask=document.getElementById('sheetMask'), sheetSub=document.getElementById('sheetSub');
+  var state={vote:null, emphasizedOnce:false, committed:false, reportOnly:false};
+
+  function showToast(m){toast.textContent=m;toast.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){toast.classList.remove('show');},1600);}
+
+  function clearSel(){btnUp.classList.remove('sel-up');btnDown.classList.remove('sel-down');}
+
+  function emphasize(){
+    fbbar.classList.add('emph');
+    if(!state.emphasizedOnce){ // nudge animation once
+      var bs=fbbar.querySelectorAll('.fbtn');
+      bs.forEach(function(b){b.classList.add('pulse');});
+      setTimeout(function(){bs.forEach(function(b){b.classList.remove('pulse');});},600);
+      state.emphasizedOnce=true;
+    }
+  }
+  function deEmphasize(){fbbar.classList.remove('emph');}
+
+  // play / pause sim
+  function setPaused(p){
+    video.classList.toggle('paused',p);
+    video.classList.toggle('hidectrl',!p);   // controls auto-hide while playing
+    if(p) emphasize(); else deEmphasize();
+  }
+  document.getElementById('pauseBtn').addEventListener('click',function(){setPaused(!video.classList.contains('paused'));});
+  document.getElementById('bigplay').addEventListener('click',function(){setPaused(false);});
+  document.getElementById('playSm').addEventListener('click',function(){setPaused(!video.classList.contains('paused'));});
+
+  function hideBar(){fbbar.classList.add('gone');}
+
+  // The vote EVENT only fires after the user dismisses the bottom sheet — never on the
+  // initial tap. Tapping 👍/👎 just selects + opens the sheet; commitVote() sends it.
+  function commitVote(){
+    if(state.vote && !state.committed){
+      state.committed=true;
+      setTimeout(hideBar,160);        // collapse the overlay once the event is sent
+    }
+  }
+
+  btnUp.addEventListener('click',function(){
+    if(state.vote)return;
+    state.vote='up';clearSel();btnUp.classList.add('sel-up');
+    openUp();                         // open share dialog — event sent when it closes
+  });
+  btnDown.addEventListener('click',function(){
+    if(state.vote)return;
+    state.vote='down';clearSel();btnDown.classList.add('sel-down');
+    openSheet(true);                  // open report sheet — event sent when it closes
+  });
+  document.getElementById('moreBtn').addEventListener('click',function(){showToast('More ▸ 提供影片反饋（既有深層入口）');openSheet(false);});
+  // variant A: the original standalone 回報 button — opens report directly, no vote
+  document.getElementById('btnReportA').addEventListener('click',function(){
+    if(state.committed)return;
+    state.reportOnly=true;openSheet(false);
+  });
+
+  function openSheet(fromDownvote){
+    sheetSub.textContent=fromDownvote?'想告訴我們是哪裡不好嗎？（選填，可複選）':'協助我們了解這支影片有哪些問題（可複選）';
+    sheetMask.classList.add('show');sheet.classList.add('show');
+  }
+  function closeSheet(){sheetMask.classList.remove('show');sheet.classList.remove('show');}
+  // dismiss report without submitting → for 👎 this is when the event fires
+  function dismissReport(){
+    if(state.vote==='down'){commitVote();showToast('已收到，謝謝 🙏');}
+    closeSheet();
+  }
+  document.getElementById('sheetClose').addEventListener('click',dismissReport);
+  sheetMask.addEventListener('click',dismissReport);
+
+  // video-authorization dialog (after 👍) — 👍 event fires when this dialog is dismissed
+  var upMask=document.getElementById('upMask'), upsheet=document.getElementById('upsheet');
+  function openUp(){upMask.classList.add('show');upsheet.classList.add('show');}
+  function closeUp(){upMask.classList.remove('show');upsheet.classList.remove('show');}
+  function dismissShare(msg){commitVote();showToast(msg);closeUp();}
+  upMask.addEventListener('click',function(){dismissShare('感謝你的回饋 🙏');});
+  document.getElementById('upClose').addEventListener('click',function(){dismissShare('感謝你的回饋 🙏');});
+  document.getElementById('upAgree').addEventListener('click',function(){dismissShare('感謝分享，這會幫助我們改善 🙏');});
+  document.getElementById('upDecline').addEventListener('click',function(){dismissShare('沒問題，感謝你的回饋 🙏');});
+
+  // chips / consent / submit
+  var chips=document.querySelectorAll('#chips .chip');
+  chips.forEach(function(c){c.addEventListener('click',function(){c.classList.toggle('on');refresh();});});
+  var otherChip=document.getElementById('otherChip'), otherText=document.getElementById('otherText'), consent=document.getElementById('consent'), submit=document.getElementById('submit');
+  var charCount=document.getElementById('charCount');
+  function updateCount(){
+    var n=otherText.value.length;
+    charCount.textContent=n+'/100';
+    charCount.classList.toggle('show',otherChip.classList.contains('on') && n>=80); // only near limit
+    charCount.classList.toggle('max',n>=100);
+  }
+  otherChip.addEventListener('click',function(){otherChip.classList.toggle('on');otherText.classList.toggle('show',otherChip.classList.contains('on'));updateCount();refresh();});
+  otherText.addEventListener('input',function(){updateCount();refresh();});
+  consent.addEventListener('change',refresh);
+  function anySel(){var a=false;chips.forEach(function(c){if(c.classList.contains('on'))a=true;});if(otherChip.classList.contains('on')&&otherText.value.trim())a=true;return a;}
+  function refresh(){submit.classList.toggle('ready',consent.checked&&anySel());}
+  submit.addEventListener('click',function(){
+    if(!submit.classList.contains('ready'))return;
+    closeSheet();
+    if(state.vote==='down'){commitVote();showToast('已送出回饋，感謝協助 🙏');}        // 👎 + report
+    else if(state.reportOnly){showToast('已送出回報，感謝協助 🙏');setTimeout(hideBar,200);} // variant A 回報
+    else{showToast('已送出詳細回報，感謝協助 🙏');}                                      // More-menu entry
+  });
+
+  // reset
+  function resetAll(silent){
+    state.vote=null;state.emphasizedOnce=false;state.committed=false;state.reportOnly=false;clearSel();closeSheet();closeUp();
+    fbbar.classList.remove('gone');
+    chips.forEach(function(c){c.classList.remove('on');});otherChip.classList.remove('on');otherText.value='';otherText.classList.remove('show');
+    charCount.classList.remove('show','max');charCount.textContent='0/100';
+    consent.checked=false;refresh();setPaused(true);if(!silent)showToast('已重置');
+  }
+  document.getElementById('resetBtn').addEventListener('click',function(){resetAll();});
+
+  // A/B variant switch
+  document.querySelectorAll('#variantSeg button').forEach(function(b){b.addEventListener('click',function(){
+    document.querySelectorAll('#variantSeg button').forEach(function(x){x.classList.remove('active');});b.classList.add('active');
+    fbbar.classList.toggle('variant-a',b.dataset.variant==='A');
+    resetAll(true);
+    showToast(b.dataset.variant==='A'?'切到 A：原始（回報）':'切到 B：新版 👍/👎');
+  });});
+
+  // annotations
+  var pins=document.querySelectorAll('.pin');
+  document.querySelectorAll('#annoSeg button').forEach(function(b){b.addEventListener('click',function(){
+    document.querySelectorAll('#annoSeg button').forEach(function(x){x.classList.remove('active');});b.classList.add('active');
+    var on=b.dataset.anno==='on';pins.forEach(function(p){p.classList.toggle('hidden',!on);});
+  });});
+  pins.forEach(function(p){p.addEventListener('click',function(e){
+    e.stopPropagation();var card=document.getElementById('card'+p.textContent.trim());
+    if(card){document.querySelectorAll('.card.note').forEach(function(c){c.classList.remove('highlight');});card.classList.add('highlight');card.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){card.classList.remove('highlight');},1800);}
+  });});
+
+  // top tabs: prototype vs PRD (same file = SSOT)
+  var viewProto=document.getElementById('viewProto'), viewPrd=document.getElementById('viewPrd');
+  document.querySelectorAll('#tabs button').forEach(function(b){b.addEventListener('click',function(){
+    document.querySelectorAll('#tabs button').forEach(function(x){x.classList.remove('active');});b.classList.add('active');
+    var prd=b.dataset.view==='prd';
+    viewPrd.hidden=!prd;viewProto.hidden=prd;
+  });});
+
+  // start paused (= just finished watching) to showcase emphasis
+  setPaused(true);
+})();
+</script>
+</body>
+</html>
