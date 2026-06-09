@@ -216,7 +216,8 @@
           <div class="sub" id="sheetSub">協助我們了解這支影片有哪些問題（可複選）</div>
           <div class="chips" id="chips">
             <span class="chip">動態誤報</span>
-            <span class="chip">不正確的事件偵測類型</span>
+            <span class="chip">不正確的事件類別</span>
+            <span class="chip">不正確的物體位置標記</span>
             <span class="chip">錄影中斷或不完整</span>
             <span class="chip">畫面破損</span>
             <span class="chip">聲音破損/沒有聲音</span>
@@ -489,6 +490,7 @@
       <p class="legend"><b>同步流程：</b>本 HTML 為單一真實來源（SSOT）。線上原型（<code>jungwei-alfred.github.io/alfred-video-feedback</code>）以 <code>update-video-feedback.sh</code> 手動重發佈；Confluence PD 頁的 PRD 全文為同步鏡像，每次 HTML 的 PRD 有更新即<b>自動同步</b>過去（不需另外確認）。</p>
       <table>
         <tr><th>日期</th><th>變更</th></tr>
+        <tr><td>2026-06-09</td><td>回報選項「不正確的事件偵測類型」拆分為「不正確的事件類別」與「不正確的物體位置標記」。</td></tr>
         <tr><td>2026-06-09</td><td>新增「同步流程」說明；Confluence PRD 全文改為自動同步（HTML 更新即同步，不需確認）。</td></tr>
         <tr><td>2026-06-09</td><td>補上背景（F-Squad YOLOv26n 目標）、主要 / 次要問題、解決方案方向、專案團隊、Q&amp;A；資料寫入改為「API + Firebase 雙寫」，讚 / 倒讚狀態沿用 report API（新增分享與否、Others message），Viewer 由 Event List API 取得。</td></tr>
         <tr><td>2026-06-08</td><td>事件改為「關閉 bottom sheet 後才發送」（讚 / 倒讚一致）；新增 A/B 變體切換與測試規格；「其他」加 100 字上限 + 計數器；👍 後改為影片「同意分享」dialog；入口移至播放器右下角（原回報位置）；移除「收回」浮層。</td></tr>
