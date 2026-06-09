@@ -373,19 +373,37 @@
         <b>單一真實來源（SSOT）：</b>本 PRD 與左側「原型 + 規格」同處一個 HTML 檔。每次調整原型互動時，請<b>一併更新此 PRD 與下方變更記錄</b>，確保兩者永遠一致、不 drift。
       </div>
       <div class="meta">
-        <b>產品：</b>AlfredCamera — 影片回饋（Event Player）　|　<b>版本：</b>v2（原型）　|　<b>最後更新：</b>2026-06-08　|　<b>狀態：</b><span class="pill">Draft / 待 PO 討論</span>　|　<b>負責人：</b>jungwei
+        <b>產品：</b>AlfredCamera — 影片回饋（Event Player）　|　<b>版本：</b>v2（原型）　|　<b>最後更新：</b>2026-06-09　|　<b>狀態：</b><span class="pill">Draft / 待 PO 討論</span>　|　<b>負責人：</b>Jung-Wei Wei
       </div>
 
-      <h2>1. 背景與問題</h2>
-      <p>目前影片回饋的入口都在 Event Player 內，且都偏深：(1) 右上 ⋯ More 裡的「提供影片反饋」（藏得深）；(2) 影片暫停時右下角的「回報」（需符合特定條件才出現）。點進去後只有可複選的問題選項、沒有開放式填答，且都必須勾選影片授權才能送出。</p>
-      <p>結果是回饋門檻高、樣本少，也缺少一個能看「整體滿意度趨勢」的輕量訊號。</p>
+      <h2>1. 背景</h2>
+      <p>F-Squad 六月目標之一：「<b>雙平台 75% 以上的設備使用 YOLOv26n</b>，剩餘低階裝置則使用小 model 來運作 Person Detection」。完成後的下一步，是要決定 <b>AI model on SW Camera 之後要怎麼走</b>——因此需要更多來自用戶的 input，方便後續決策。</p>
 
-      <h2>2. 目標與非目標</h2>
+      <h2>2. 問題</h2>
+      <h3>主要問題</h3>
+      <ul>
+        <li>我們現在<b>無法得知 Premium 用戶對目前 AI model 滿不滿意</b>，只有相對間接的指標可參考（PD 開啟、功能留存率，或 PD 用戶的訂閱率、訂閱留存率等）。</li>
+        <li>用戶回饋的<b>入口藏得太深</b>：目前兩個入口都在 Event Player 內——(1) 右上 ⋯ More 裡的「提供影片反饋」（藏得較深）；(2) 影片暫停時右下角的「回報」（需符合特定條件才出現）。</li>
+        <li>現在的回報內容<b>沒有上報到 Firebase、只有打 API</b>，所以想前後比較「回報」的點擊率也做不到——因為沒有點擊數，只有實際回報的數量。</li>
+      </ul>
+      <h3>次要問題</h3>
+      <ul>
+        <li>用戶必須同意影片授權才能送出回饋，可能減少影片回收的數量。<span class="pill">nice-to-have</span></li>
+      </ul>
+
+      <h2>3. 解決方案方向</h2>
+      <ul>
+        <li>在 Event Player 上提供<b>讚 / 倒讚</b>，並提供一個<b>開放式 feedback 管道</b>。</li>
+        <li>新埋點都放到 <b>Firebase</b>（含讚、倒讚、feedback 內容），方便後續數據分析；同時保留 API 寫入。</li>
+      </ul>
+
+      <h2>4. 目標與非目標</h2>
       <h3>目標</h3>
       <ul>
-        <li>提供更直覺、低門檻的回饋入口，提高回饋率。</li>
+        <li>提供更直覺、低門檻的回饋入口，提高回饋率，補足「Premium 用戶對 AI model 滿意度」的直接訊號。</li>
         <li>用 👍 / 👎 取得可看大盤趨勢的滿意度訊號（免影片授權）。</li>
         <li>負向情境順勢收集可診斷的細節（回報表單 + 開放填答）。</li>
+        <li>新事件上 Firebase，補足「回報入口點擊率」這類目前缺的數據。</li>
         <li>以 A/B 驗證新入口優於現況，再決定全量。</li>
       </ul>
       <h3>非目標</h3>
@@ -394,40 +412,45 @@
         <li>不為了提高影片授權率而使用預設打勾等 dark pattern。</li>
       </ul>
 
-      <h2>3. 成功指標</h2>
+      <h2>5. 成功指標</h2>
       <ul>
         <li><b>主要：</b>入口點擊率（CTR）、回報成功率（完成送出 ÷ 開啟表單）。</li>
         <li><b>次要：</b>每次觀看回饋率、👍:👎 比、影片分享同意率、「其他」填寫率、誤觸/取消率。</li>
       </ul>
 
-      <h2>4. 使用者故事</h2>
+      <h2>6. 使用者故事</h2>
       <ul>
         <li>身為使用者，看完一段回放後，我想用一鍵 👍 / 👎 快速表達好不好，不必填表單。</li>
         <li>身為使用者，當影片有問題時，我想順手選問題類型、必要時補一句說明。</li>
         <li>身為 PM，我想看大盤滿意度趨勢，並能切維度找出哪類事件 / 機型滿意度偏低。</li>
       </ul>
 
-      <h2>5. 功能需求</h2>
-      <h3>5.1 入口位置與顯示</h3>
+      <h2>7. 功能需求</h2>
+      <h3>7.1 入口位置與顯示</h3>
       <p>👍 / 👎 疊在播放畫面右下角（即原「回報」按鈕位置），跟播放控制列一起 auto-hide：播放時隱藏、暫停 / 結束時顯示。暫停或結束那一刻對按鈕做一次 nudge 微動畫，捕捉「看完」時機。</p>
-      <h3>5.2 讚 / 倒讚行為</h3>
+      <h3>7.2 讚 / 倒讚行為</h3>
       <ul>
         <li>點擊只負責「選取（highlight）+ 開啟對應 bottom sheet」；單選互斥。</li>
         <li><b>事件一律在使用者關閉 sheet 後才發送</b>（送出、同意分享、下次再說、X、點遮罩皆算關閉），一次寫入完整事件。</li>
         <li>送出後鎖定、按鈕淡出消失（一次定論，不可反悔）。</li>
         <li>👍 / 👎 免影片授權。</li>
       </ul>
-      <h3>5.3 👎 → 回報表單</h3>
+      <h3>7.3 👎 → 回報表單</h3>
       <p>👎 帶出回報 bottom sheet：可複選問題類型；「其他」展開開放式填答，上限 <b>100 字</b>（對齊 Firebase Analytics 事件參數值上限），接近上限（≥80）才顯示計數器、滿 100 轉紅。詳細回報須勾選影片授權才能送出。</p>
-      <h3>5.4 👍 → 同意分享 dialog</h3>
+      <h3>7.4 👍 → 同意分享 dialog</h3>
       <p>👍 帶出影片「同意分享」dialog：「願意分享這支影片，協助我們優化偵測品質嗎？」配「同意分享 / 下次再說」雙鍵（不預設），含一行範圍說明（僅這支、僅工程團隊），左上 X 與點遮罩皆可關閉。分享與否不影響 👍 已被記錄。</p>
-      <h3>5.5 備援入口</h3>
+      <h3>7.5 備援入口</h3>
       <p>右上 ⋯ More 的「提供影片反饋」保留為既有深層入口。</p>
 
-      <h2>6. 埋點規格</h2>
-      <p>事件於關閉 sheet 時寫入，至少包含：事件類型、相機型號、偵測類型、App 版本、時間、是否經強調觸發、<b>變體（A / B）</b>，並依情境附帶：分享與否、回報選項、其他文字（≤100 字）。</p>
+      <h2>8. 資料寫入與埋點</h2>
+      <ul>
+        <li><b>雙寫：</b>讚 / 倒讚與 bottom sheet（回報 / 分享）<b>都同時打 API 與 Firebase 事件</b>（讚、倒讚、feedback 內容都要進 Firebase）。</li>
+        <li><b>發送時機：</b>Firebase 事件於 <b>bottom sheet 消失後</b>發送，一次寫入完整事件。</li>
+        <li><b>讚 / 倒讚狀態：</b>沿用目前 report API 機制（需微調，新增「影片要不要分享」與「Others 的 message」兩項）；Viewer 可從 <b>Event List API</b> 取得該影片的讚 / 倒讚狀態，用來判斷是否已給過。</li>
+        <li><b>事件參數（至少）：</b>事件類型、相機型號、偵測類型、App 版本、時間、是否經強調觸發、變體（A / B）；依情境附帶分享與否、回報選項、其他文字（≤100 字）。</li>
+      </ul>
 
-      <h2>7. A/B 測試計畫</h2>
+      <h2>9. A/B 測試計畫</h2>
       <p><b>假設：</b>把入口從單一「回報」按鈕（A）換成 👍 / 👎（B），能降低回饋門檻、收到更多回饋，且不犧牲回報品質。</p>
       <table>
         <tr><th>項目</th><th>A 對照組</th><th>B 實驗組</th></tr>
@@ -438,18 +461,34 @@
       <p><b>主要指標：</b>入口 CTR、回報成功率。<b>分流：</b>使用者層級隨機，同一使用者固定看同一變體。<b>期間：</b>跑到統計顯著或至少 1–2 週（涵蓋週末）。</p>
       <p><b>注意：</b>兩版入口語意不同（A 只有回報、B 多了純 emoji），CTR 不能直接劃等號——需各自定義入口事件，並把「總回饋量」與「回報量」分開看。</p>
 
-      <h2>8. 待討論決策點</h2>
+      <h2>10. 待討論決策點</h2>
       <ul>
-        <li>事件發送時機：本版採「關閉 sheet 後發送」。</li>
         <li>誤觸無法挽回：鎖死 + 消失，是否視誤觸率加回「收回」緩衝。</li>
         <li>👍 後跳分享 dialog 的摩擦：是否只對部分流量 / 前幾次顯示。</li>
         <li>👍 / 👎 語意維度：建議收斂為「影片是否有幫助」。</li>
         <li>影片授權：是否值得另做提高同意率的優化（拆開、contextual、文案）。</li>
       </ul>
 
-      <h2>9. 變更記錄</h2>
+      <h2>11. Q&amp;A</h2>
+      <ul>
+        <li><b>Q：讚 / 倒讚要記錄在 server side 嗎？</b><br>A：YES。讚 / 倒讚與 bottom sheet 都要打 <b>API + Firebase 事件</b>。</li>
+        <li><b>Q：Firebase 事件何時發送？</b><br>A：<b>bottom sheet 消失後</b>發送。</li>
+        <li><b>Q：要怎麼知道該影片已給過讚 / 倒讚？</b><br>A：沿用目前 <b>report API</b> 機制（需微調，新增「影片要不要分享」、「Others 的 message」兩項資訊）；Viewer 可從 <b>Event List API</b> 取得讚 / 倒讚狀態。</li>
+      </ul>
+
+      <h2>12. 專案團隊</h2>
+      <table>
+        <tr><th>角色</th><th>成員</th></tr>
+        <tr><td>PO</td><td><a href="mailto:jungwei.wei@alfred.camera">Jung-Wei Wei</a>（ft. <a href="mailto:shawn.lin@alfred.camera">Shawn Lin</a>）</td></tr>
+        <tr><td>PJM</td><td><a href="mailto:jungwei.wei@alfred.camera">Jung-Wei Wei</a></td></tr>
+        <tr><td>RD</td><td><a href="mailto:vic.wang@alfred.camera">Vic Wang</a>、<a href="mailto:sean.lin@alfred.camera">Sean Lin</a></td></tr>
+        <tr><td>QA</td><td><a href="mailto:jay.wei@alfred.camera">Jay Wei</a></td></tr>
+      </table>
+
+      <h2>13. 變更記錄</h2>
       <table>
         <tr><th>日期</th><th>變更</th></tr>
+        <tr><td>2026-06-09</td><td>補上背景（F-Squad YOLOv26n 目標）、主要 / 次要問題、解決方案方向、專案團隊、Q&amp;A；資料寫入改為「API + Firebase 雙寫」，讚 / 倒讚狀態沿用 report API（新增分享與否、Others message），Viewer 由 Event List API 取得。</td></tr>
         <tr><td>2026-06-08</td><td>事件改為「關閉 bottom sheet 後才發送」（讚 / 倒讚一致）；新增 A/B 變體切換與測試規格；「其他」加 100 字上限 + 計數器；👍 後改為影片「同意分享」dialog；入口移至播放器右下角（原回報位置）；移除「收回」浮層。</td></tr>
       </table>
     </div>
