@@ -66,7 +66,7 @@
   .track{flex:1;height:3px;background:rgba(255,255,255,.35);border-radius:2px;position:relative;}
   .track .dot{position:absolute;top:50%;width:9px;height:9px;background:#fff;border-radius:50%;transform:translate(-50%,-50%);transition:left .2s;}
   .bigplay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:46px;color:rgba(255,255,255,.85);cursor:pointer;}
-  .video.paused:not(.ended) .bigplay{display:flex;}
+  .bigplay.show{display:flex;}
 
   .footer{flex:none;height:60px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
   .scrubber .fs{font-size:15px;cursor:pointer;margin-left:2px;}
@@ -574,6 +574,8 @@
     var showEnd    = !state.committed && s==='ended' && state.variant==='B';
     reportBtn.classList.toggle('show', showReport);
     endfb.classList.toggle('show', showEnd);
+    // center play button: paused (both), and ended in variant A (original = replay button kept)
+    document.getElementById('bigplay').classList.toggle('show', s==='paused' || (s==='ended' && state.variant==='A'));
     if(showEnd) emphasizeEnd();
   }
   document.querySelectorAll('#stateSeg button').forEach(function(b){b.addEventListener('click',function(){
