@@ -157,7 +157,7 @@
 <div class="wrap">
   <header class="page">
     <h1>影片回饋 — 互動原型與規格 <span style="color:var(--accent);font-size:14px;">v2</span></h1>
-    <p>播放器底部<b>常駐「這次有抓對嗎？＋ 單色 👍 / 👎」</b>（無論播放 / 暫停 / 播完），靠右對齊，跟播放控制列一起 <b>3 秒自動隱藏</b>、點影片再一起喚出。👍 帶出影片「同意分享」dialog、👎 帶出回報表單；事件在關閉 bottom sheet 後才送出，送出後鎖定（回饋列不消失）。</p>
+    <p>播放器底部<b>常駐「這次有抓對嗎？＋ 單色 👍 / 👎」</b>（無論播放 / 暫停 / 播完），靠右對齊，跟播放控制列一起 <b>3 秒自動隱藏</b>、點影片再一起喚出。👍 帶出影片「同意分享」dialog、👎 帶出回報表單；事件在關閉 bottom sheet 後才送出，<b>送出後整排回饋列消失</b>（不留下不可改的鎖定狀態）。</p>
   </header>
 
   <div class="tabs" id="tabs">
@@ -298,15 +298,15 @@
         <ul>
           <li><b>問句：</b>固定為「<b>這次有抓對嗎？</b>」（等同「Did we get it right?」），不依 event type 變化。按鈕標示「正確 / 不正確」。</li>
           <li><b>UI：</b>單色拇指圖示（類似 FB 讚，去掉黃色 emoji 的娛樂感）；白字加陰影維持對比。</li>
-          <li><b>送出：</b>點 👍/👎 開對應 sheet，關閉後才送出；一支影片一次、送出後鎖定（highlight 保留、回饋列不消失）。</li>
+          <li><b>送出：</b>點 👍/👎 開對應 sheet，關閉後才送出；一支影片一次、<b>送出後整排回饋列消失</b>（避免看得到卻不能改的挫敗感）。</li>
         </ul>
       </div>
 
       <div class="card note" id="card3">
-        <h4><span class="ntag">3</span>送出後鎖定（回饋列保留）</h4>
-        <p>給完回饋即視為<b>確實送出</b>、一支影片一次定論——已選 highlight 鎖定、不可改；回饋列<b>不消失</b>，仍跟控制列一起自動隱藏 / 喚出。</p>
+        <h4><span class="ntag">3</span>送出後整列消失</h4>
+        <p>給完回饋即視為<b>確實送出</b>、一支影片一次定論。送出後<b>整排回饋列直接消失</b>，不留下「看得到卻不能改」的鎖定狀態，避免挫敗感。</p>
         <ul>
-          <li>事件在關閉 bottom sheet 後才送出（見「資料寫入與埋點」）。</li>
+          <li>事件在關閉 bottom sheet 後才送出（見「資料寫入與埋點」）；以 toast 確認已送出。</li>
         </ul>
       </div>
 
@@ -323,7 +323,7 @@
 
       <div class="card note" id="card6">
         <h4><span class="ntag">6</span>👍 後跳「同意分享」dialog</h4>
-        <p>點 👍 即選取正向訊號（回饋列保留、送出後鎖定），<b>隨即</b>彈出影片分享詢問「願意分享這支影片，協助我們優化偵測品質嗎？」，用滿意當下的時機爭取分享。</p>
+        <p>點 👍 即選取正向訊號（送出後整列消失），<b>隨即</b>彈出影片分享詢問「願意分享這支影片，協助我們優化偵測品質嗎？」，用滿意當下的時機爭取分享。</p>
         <ul>
           <li>「同意分享 / 下次再說」雙鍵，明確主動同意（不預設）。</li>
           <li>左上 X 或點背景遮罩皆可關閉，👍 已記錄、不受分享與否影響；無「選填」字樣。</li>
@@ -350,8 +350,8 @@
         <div class="opt">問句 + 👍/👎 常駐(跟控制列一起 3 秒自動隱藏)。每支都顯示是否造成疲勞 / 誤觸，待觀察；可評估抽樣或只前幾支顯示。</div>
       </div>
       <div class="card decision">
-        <h4>送出後鎖定</h4>
-        <div class="opt">一支影片一次定論、不可改；回饋列不消失。是否需要可改 / 收回再議。</div>
+        <h4>送出後整列消失</h4>
+        <div class="opt">一支影片一次定論；送出後整排回饋列消失（不留鎖定狀態）。是否需要可改 / 收回再議。</div>
       </div>
 
       <div class="card decision">
@@ -460,7 +460,7 @@
       <ul>
         <li>量「這次<b>偵測判斷對不對</b>」（準確度，不是價值感）；問句固定為「<b>這次有抓對嗎？</b>」（等同「Did we get it right?」），不依 event type 變化。按鈕標示「正確 / 不正確」。</li>
         <li>點擊只負責「選取（highlight）+ 開啟對應 bottom sheet」；<b>事件一律在關閉 sheet 後才發送</b>，一次寫入完整事件。</li>
-        <li>一支影片一次、送出後鎖定（highlight 保留，<b>回饋列不消失</b>，仍跟控制列一起自動隱藏 / 喚出）。</li>
+        <li>一支影片一次、<b>送出後整排回饋列直接消失</b>（不留下不可改的鎖定狀態，避免挫敗感）。</li>
         <li>👍 / 👎 免影片授權。<b>UI：</b>單色拇指圖示（類似 Facebook 讚，去掉黃色 emoji 的娛樂感）；白字加陰影維持對比。</li>
       </ul>
       <h3>7.3 👎 → 回報表單</h3>
@@ -492,7 +492,7 @@
 
       <h2>10. 待討論決策點</h2>
       <ul>
-        <li>送出後鎖定：一支影片一次定論、不可改；是否需要可改 / 收回再議。</li>
+        <li>送出後整列消失：一支影片一次定論；送出後整排回饋列消失（不留鎖定狀態）。是否需要可改 / 收回再議。</li>
         <li>常駐回饋列的干擾：每支都顯示是否造成疲勞 / 誤觸；可評估是否抽樣或只前幾支顯示。</li>
         <li>👍 後跳分享 dialog 的摩擦：是否只對部分流量 / 前幾次顯示。</li>
         <li>👍 / 👎 語意維度：定為「偵測是否正確」，問句固定「這次有抓對嗎？」（放棄 event type 差異，先求統一；若要按型別分析仍可靠埋點的偵測類型欄位切維度）。</li>
@@ -519,6 +519,7 @@
       <p class="legend"><b>同步流程：</b>本 HTML 為單一真實來源（SSOT）。線上原型（<code>jungwei-alfred.github.io/alfred-video-feedback</code>）以 <code>update-video-feedback.sh</code> 手動重發佈；Confluence PD 頁的 PRD 全文為同步鏡像，每次 HTML 的 PRD 有更新即<b>自動同步</b>過去（不需另外確認）。</p>
       <table>
         <tr><th>日期</th><th>變更</th></tr>
+        <tr><td>2026-06-11</td><td>點完 👍/👎 送出後，<b>整排回饋列直接消失</b>（不留下不可改的鎖定狀態，避免挫敗感）。</td></tr>
         <tr><td>2026-06-11</td><td>回饋列改為<b>靠右</b>對齊；問句<b>放棄 event type 差異</b>，統一固定為「<b>這次有抓對嗎？</b>」（等同 Did we get it right?），移除事件類型下拉。</td></tr>
         <tr><td>2026-06-11</td><td>放棄置中面板，改為在播放器底部（原回報位置）<b>常駐「問句 + 👍/👎」</b>，無論播放 / 暫停 / 播完都顯示，跟控制列一起 <b>3 秒自動隱藏</b>、點影片再一起喚出；送出後鎖定、回饋列不消失。移除略過 / 遮罩關閉（改由控制列自動隱藏）。</td></tr>
         <tr><td>2026-06-10</td><td>滿意度問句改為量「偵測是否正確」：依 event type 帶入「有正確偵測到『人』嗎？」（2 種以頓號接、3 種以上退回「這次偵測正確嗎？」），按鈕標示「正確 / 不正確」；移除左上時間戳記；A 版播畢保留中央播放鍵。</td></tr>
@@ -564,7 +565,7 @@
     state.playState=s;
     video.classList.toggle('paused', s!=='playing');
     video.classList.toggle('ended', s==='ended');
-    fbrow.classList.toggle('on', state.variant==='B');     // B: 問句 + 👍/👎
+    fbrow.classList.toggle('on', state.variant==='B' && !state.committed);  // B: 問句 + 👍/👎（送出後整列消失）
     reportBtn.classList.toggle('on', state.variant==='A'); // A: 回報
     bigplay.classList.toggle('show', s!=='playing');        // 中央 ▶ only when paused / ended
     showControls();   // changing state reveals controls + restarts the 3s timer
@@ -577,8 +578,9 @@
   bigplay.addEventListener('click',function(){applyState('playing');});
   document.getElementById('playSm').addEventListener('click',function(){applyState(state.playState==='playing'?'paused':'playing');});
 
-  // votes — event fires only after the bottom sheet closes; one vote per video (locks, row stays)
-  function commitVote(){ if(state.vote && !state.committed) state.committed=true; }
+  // votes — event fires only after the bottom sheet closes; one vote per video
+  // (after committing, the whole feedback row disappears so users don't see a locked, unchangeable control)
+  function commitVote(){ if(state.vote && !state.committed){ state.committed=true; fbrow.classList.remove('on'); } }
   btnUp.addEventListener('click',function(){
     if(state.committed)return;
     state.vote='up';clearSel();btnUp.classList.add('sel');btnDown.classList.add('dim');
