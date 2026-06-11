@@ -45,10 +45,10 @@
   .fbrow.on{display:flex;}
   .fbrow .fbq{color:#fff;font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,.65);}
   .tbtn{background:transparent;border:0;cursor:pointer;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;transition:.15s;}
-  .tbtn svg{width:22px;height:22px;fill:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));}
+  .tbtn svg{width:23px;height:23px;fill:none;stroke:#fff;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7));}
   .tbtn:active{transform:scale(.9);}
   .tbtn.sel{background:rgba(255,255,255,.92);}
-  .tbtn.sel svg{fill:#1f2329;filter:none;}
+  .tbtn.sel svg{fill:none;stroke:#1f2329;filter:none;}
   .tbtn.dim{opacity:.42;}
 
   .video{flex:1 1 auto;min-height:0;position:relative;background:#000;display:flex;align-items:center;justify-content:center;}
@@ -297,7 +297,7 @@
         <p>量「這次<b>偵測判斷對不對</b>」（準確度，不是價值感）。</p>
         <ul>
           <li><b>問句：</b>固定為「<b>這次有抓對嗎？</b>」（等同「Did we get it right?」），不依 event type 變化。按鈕標示「正確 / 不正確」。</li>
-          <li><b>UI：</b>單色拇指圖示（類似 FB 讚，去掉黃色 emoji 的娛樂感）；白字加陰影維持對比。</li>
+          <li><b>UI：</b>單色 <b>outline（描邊）</b>拇指圖示，去掉黃色 emoji 的娛樂感；白字加陰影維持對比。</li>
           <li><b>送出：</b>點 👍/👎 開對應 sheet，關閉後才送出；一支影片一次、<b>送出後整排回饋列消失</b>（避免看得到卻不能改的挫敗感）。</li>
         </ul>
       </div>
@@ -461,7 +461,7 @@
         <li>量「這次<b>偵測判斷對不對</b>」（準確度，不是價值感）；問句固定為「<b>這次有抓對嗎？</b>」（等同「Did we get it right?」），不依 event type 變化。按鈕標示「正確 / 不正確」。</li>
         <li>點擊只負責「選取（highlight）+ 開啟對應 bottom sheet」；<b>事件一律在關閉 sheet 後才發送</b>，一次寫入完整事件。</li>
         <li>一支影片一次、<b>送出後整排回饋列直接消失</b>（不留下不可改的鎖定狀態，避免挫敗感）。</li>
-        <li>👍 / 👎 免影片授權。<b>UI：</b>單色拇指圖示（類似 Facebook 讚，去掉黃色 emoji 的娛樂感）；白字加陰影維持對比。</li>
+        <li>👍 / 👎 免影片授權。<b>UI：</b>單色 <b>outline（描邊）</b>拇指圖示，去掉黃色 emoji 的娛樂感；白字加陰影維持對比。</li>
       </ul>
       <h3>7.3 👎 → 回報表單</h3>
       <p>👎 帶出回報 bottom sheet：可複選問題類型；「其他」展開開放式填答，上限 <b>100 字</b>（對齊 Firebase Analytics 事件參數值上限），接近上限（≥80）才顯示計數器、滿 100 轉紅。詳細回報須勾選影片授權才能送出。</p>
@@ -519,6 +519,7 @@
       <p class="legend"><b>同步流程：</b>本 HTML 為單一真實來源（SSOT）。線上原型（<code>jungwei-alfred.github.io/alfred-video-feedback</code>）以 <code>update-video-feedback.sh</code> 手動重發佈；Confluence PD 頁的 PRD 全文為同步鏡像，每次 HTML 的 PRD 有更新即<b>自動同步</b>過去（不需另外確認）。</p>
       <table>
         <tr><th>日期</th><th>變更</th></tr>
+        <tr><td>2026-06-11</td><td>👍 / 👎 拇指圖示改為 <b>outline（描邊）</b>風格。</td></tr>
         <tr><td>2026-06-11</td><td>點完 👍/👎 送出後，<b>整排回饋列直接消失</b>（不留下不可改的鎖定狀態，避免挫敗感）。</td></tr>
         <tr><td>2026-06-11</td><td>回饋列改為<b>靠右</b>對齊；問句<b>放棄 event type 差異</b>，統一固定為「<b>這次有抓對嗎？</b>」（等同 Did we get it right?），移除事件類型下拉。</td></tr>
         <tr><td>2026-06-11</td><td>放棄置中面板，改為在播放器底部（原回報位置）<b>常駐「問句 + 👍/👎」</b>，無論播放 / 暫停 / 播完都顯示，跟控制列一起 <b>3 秒自動隱藏</b>、點影片再一起喚出；送出後鎖定、回饋列不消失。移除略過 / 遮罩關閉（改由控制列自動隱藏）。</td></tr>
