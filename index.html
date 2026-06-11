@@ -59,6 +59,8 @@
 
   .video{flex:1 1 auto;min-height:0;position:relative;background:#000;display:flex;align-items:center;justify-content:center;}
   .scene{position:relative;width:100%;aspect-ratio:16/9;max-height:100%;background:linear-gradient(180deg,#cdd3d0 0%,#9aa39f 55%,#6f6f6f 100%);}
+  /* 相機直立：直式影片填滿高度（左右黑邊），回饋列直接疊在影片上 */
+  .video.cam-portrait .scene{height:100%;width:auto;aspect-ratio:9/16;max-width:100%;background:linear-gradient(165deg,#d2d6d3 0%,#8b938f 55%,#565856 100%);}
   .ts{position:absolute;top:6px;left:8px;color:#cfcfcf;font-size:10px;font-family:monospace;text-shadow:0 1px 2px #000;}
   .wm{position:absolute;right:8px;bottom:8px;color:#d8d8d8;font-size:11px;font-weight:600;opacity:.8;}
   .sound{position:absolute;top:8px;right:10px;background:rgba(40,44,42,.7);color:#fff;font-size:11px;padding:5px 10px;border-radius:14px;transition:.3s;z-index:4;}
@@ -190,8 +192,12 @@
       <button data-orient="portrait" class="active">直向</button>
       <button data-orient="landscape">橫向</button>
     </div>
+    <div class="seg" id="camSeg">
+      <button data-cam="land" class="active">相機橫放</button>
+      <button data-cam="port">相機直立</button>
+    </div>
     <button class="pillbtn" id="resetBtn">↺ 重置</button>
-    <span class="hint">提示：B 版在播放器底部（靠右）<b>常駐「這次有抓對嗎？＋ 👍/👎」</b>，跟控制列一起 <b>3 秒自動隱藏</b>——點影片可重新喚出。👍/👎 開 sheet、關閉後才送出。可切 A/B、<b>直向 / 橫向</b>。</span>
+    <span class="hint">提示：B 版在播放器底部（靠右）<b>常駐「這次有抓對嗎？＋ 👍/👎」</b>，跟控制列一起 <b>3 秒自動隱藏</b>——點影片可重新喚出。👍/👎 開 sheet、關閉後才送出。可切 A/B、直向 / 橫向、<b>相機橫放 / 直立</b>（看直式影片下回饋列的對比）。</span>
   </div>
 
   <div class="layout">
@@ -528,6 +534,7 @@
       <p class="legend"><b>同步流程：</b>本 HTML 為單一真實來源（SSOT）。線上原型（<code>jungwei-alfred.github.io/alfred-video-feedback</code>）以 <code>update-video-feedback.sh</code> 手動重發佈；Confluence PD 頁的 PRD 全文為同步鏡像，每次 HTML 的 PRD 有更新即<b>自動同步</b>過去（不需另外確認）。</p>
       <table>
         <tr><th>日期</th><th>變更</th></tr>
+        <tr><td>2026-06-11</td><td>原型加入「<b>相機橫放 / 直立</b>」切換，可預覽直式影片（畫面填滿）下回饋列的對比效果。</td></tr>
         <tr><td>2026-06-11</td><td>控制列 / 回饋列下方加<b>漸層遮罩</b>，解決<b>直式影片</b>（相機直立、畫面填滿）或亮背景時回饋列看不清楚的問題。</td></tr>
         <tr><td>2026-06-11</td><td>文件狀態由「Draft / 待 PO 討論」改為「<b>In progress</b>」。</td></tr>
         <tr><td>2026-06-11</td><td>👍 / 👎 拇指圖示改為 <b>outline（描邊）</b>風格。</td></tr>
@@ -586,6 +593,11 @@
   document.querySelectorAll('#stateSeg button').forEach(function(b){b.addEventListener('click',function(){
     document.querySelectorAll('#stateSeg button').forEach(function(x){x.classList.remove('active');});b.classList.add('active');
     applyState(b.dataset.state);
+  });});
+  // camera footage orientation: landscape (橫放) / portrait (直立) — preview contrast over portrait video
+  document.querySelectorAll('#camSeg button').forEach(function(b){b.addEventListener('click',function(){
+    document.querySelectorAll('#camSeg button').forEach(function(x){x.classList.remove('active');});b.classList.add('active');
+    video.classList.toggle('cam-portrait', b.dataset.cam==='port');
   });});
   bigplay.addEventListener('click',function(){applyState('playing');});
   document.getElementById('playSm').addEventListener('click',function(){applyState(state.playState==='playing'?'paused':'playing');});
