@@ -19,8 +19,6 @@
   .toolbar .seg button{border:0;background:#fff;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--muted);}
   .toolbar .seg button.active{background:var(--accent);color:#fff;}
   .toolbar .hint{font-size:12.5px;color:var(--muted);}
-  .toolbar .evt{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);}
-  .toolbar .evt select{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:#fff;cursor:pointer;}
   .pillbtn{background:#eef0f2;color:#333;border:1px solid var(--line);border-radius:18px;padding:8px 14px;font-size:13px;cursor:pointer;}
 
   .layout{display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:start;}
@@ -33,30 +31,25 @@
   .navbar .back{position:absolute;left:14px;font-size:18px;}
   .navbar .more{position:absolute;right:14px;font-size:18px;cursor:pointer;}
 
-  /* PAUSED → 回報 button (bottom-right) */
-  .reportbtn{position:absolute;right:10px;bottom:46px;z-index:6;display:none;align-items:center;gap:6px;
-    background:rgba(40,44,42,.82);border:0;color:#fff;border-radius:18px;height:34px;padding:0 14px;font-size:13px;cursor:pointer;backdrop-filter:blur(2px);transition:.2s;}
-  .reportbtn.show{display:inline-flex;}
-  .reportbtn:active{transform:scale(.94);}
-  .video.hidectrl .reportbtn{opacity:0;pointer-events:none;}
+  /* tap layer: tapping the video toggles the controls (incl. the feedback row) */
+  .tap{position:absolute;inset:0;z-index:1;}
 
-  /* ENDED → centered satisfaction feedback (monochrome thumbs) */
-  .endfb{position:absolute;inset:0;z-index:7;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(0,0,0,.5);cursor:pointer;}
-  .endfb.show{display:flex;}
-  .endfeedback{display:flex;flex-direction:column;align-items:center;gap:12px;cursor:default;}
-  .endfb .q{color:#fff;font-size:15px;font-weight:600;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.6);}
-  .endfb .thumbs{display:flex;gap:20px;}
-  .thumb{display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;border:0;cursor:pointer;transition:.18s;}
-  .thumb .ic{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.6);transition:.18s;}
-  .thumb .ic svg{width:26px;height:26px;fill:#fff;}
-  .thumb .lbl{font-size:12px;color:#e9e9e9;}
-  .thumb:active .ic{transform:scale(.9);}
-  .thumb.sel .ic{background:#fff;border-color:#fff;}
-  .thumb.sel .ic svg{fill:#1f2329;}
-  .thumb.dim{opacity:.38;}
-  .skipbtn{background:transparent;border:0;color:rgba(255,255,255,.78);font-size:12.5px;cursor:pointer;text-decoration:underline;padding:2px 6px;}
-  @keyframes nudge{0%{transform:scale(1);}30%{transform:scale(1.14);}60%{transform:scale(.97);}100%{transform:scale(1);}}
-  .endfb.pulse .thumb .ic{animation:nudge .55s ease;}
+  /* 回報 button (variant A) — lives in the auto-hiding controls layer */
+  .reportbtn{position:absolute;right:10px;bottom:44px;z-index:6;display:none;align-items:center;gap:6px;
+    background:rgba(40,44,42,.82);border:0;color:#fff;border-radius:18px;height:34px;padding:0 14px;font-size:13px;cursor:pointer;backdrop-filter:blur(2px);transition:.3s;}
+  .reportbtn.on{display:inline-flex;}
+  .reportbtn:active{transform:scale(.94);}
+
+  /* persistent feedback row (variant B): "問句 + 👍 👎" at the old 回報 area, auto-hides with controls */
+  .fbrow{position:absolute;right:12px;bottom:42px;z-index:6;display:none;align-items:center;gap:10px;transition:.3s;}
+  .fbrow.on{display:flex;}
+  .fbrow .fbq{color:#fff;font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,.65);}
+  .tbtn{background:transparent;border:0;cursor:pointer;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;transition:.15s;}
+  .tbtn svg{width:22px;height:22px;fill:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));}
+  .tbtn:active{transform:scale(.9);}
+  .tbtn.sel{background:rgba(255,255,255,.92);}
+  .tbtn.sel svg{fill:#1f2329;filter:none;}
+  .tbtn.dim{opacity:.42;}
 
   .video{flex:1 1 auto;min-height:0;position:relative;background:#000;display:flex;align-items:center;justify-content:center;}
   .scene{position:relative;width:100%;aspect-ratio:16/9;max-height:100%;background:linear-gradient(180deg,#cdd3d0 0%,#9aa39f 55%,#6f6f6f 100%);}
@@ -65,11 +58,12 @@
   .sound{position:absolute;top:8px;right:10px;background:rgba(40,44,42,.7);color:#fff;font-size:11px;padding:5px 10px;border-radius:14px;transition:.3s;z-index:4;}
   /* control row that auto-hides — note: feedback bar is NOT here, so it survives */
   .scrubber{position:absolute;left:0;right:0;bottom:8px;display:flex;align-items:center;gap:10px;padding:0 14px;color:#eee;font-size:11px;transition:.3s;}
-  .video.hidectrl .scrubber,.video.hidectrl .sound{opacity:0;pointer-events:none;}
+  .video.hidectrl .scrubber,.video.hidectrl .sound,.video.hidectrl .fbrow,.video.hidectrl .reportbtn,.video.hidectrl .bigplay{opacity:0;pointer-events:none;}
+  .scrubber{z-index:6;}
   .scrubber .play{font-size:16px;cursor:pointer;}
   .track{flex:1;height:3px;background:rgba(255,255,255,.35);border-radius:2px;position:relative;}
   .track .dot{position:absolute;top:50%;width:9px;height:9px;background:#fff;border-radius:50%;transform:translate(-50%,-50%);transition:left .2s;}
-  .bigplay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:46px;color:rgba(255,255,255,.85);cursor:pointer;}
+  .bigplay{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;font-size:46px;color:rgba(255,255,255,.85);cursor:pointer;}
   .bigplay.show{display:flex;}
 
   .footer{flex:none;height:60px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
@@ -163,7 +157,7 @@
 <div class="wrap">
   <header class="page">
     <h1>影片回饋 — 互動原型與規格 <span style="color:var(--accent);font-size:14px;">v2</span></h1>
-    <p>影片<b>暫停</b>時右下角出現「回報」；<b>播放結束</b>時在畫面中央出現「有正確偵測到『人』嗎？」（依 event type 帶入）＋單色 👍 / 👎。👍 帶出影片「同意分享」dialog、👎 帶出回報表單；事件在關閉 bottom sheet 後才送出，按過即鎖定、面板淡出（不可反悔）。</p>
+    <p>播放器底部<b>常駐「這次有抓對嗎？＋ 單色 👍 / 👎」</b>（無論播放 / 暫停 / 播完），靠右對齊，跟播放控制列一起 <b>3 秒自動隱藏</b>、點影片再一起喚出。👍 帶出影片「同意分享」dialog、👎 帶出回報表單；事件在關閉 bottom sheet 後才送出，送出後鎖定（回饋列不消失）。</p>
   </header>
 
   <div class="tabs" id="tabs">
@@ -183,26 +177,15 @@
     </div>
     <div class="seg" id="stateSeg">
       <button data-state="playing">▶ 播放中</button>
-      <button data-state="paused">⏸ 暫停</button>
-      <button data-state="ended" class="active">⏹ 播放結束</button>
+      <button data-state="paused" class="active">⏸ 暫停</button>
+      <button data-state="ended">⏹ 播放結束</button>
     </div>
     <div class="seg" id="orientSeg">
       <button data-orient="portrait" class="active">直向</button>
       <button data-orient="landscape">橫向</button>
     </div>
-    <label class="evt">事件類型
-      <select id="eventSel">
-        <option value="人">人</option>
-        <option value="車">車</option>
-        <option value="寵物">寵物</option>
-        <option value="聲音">聲音</option>
-        <option value="動態">動態</option>
-        <option value="人,動態">人＋動態（多重）</option>
-        <option value="人,寵物,聲音">人＋寵物＋聲音（三重）</option>
-      </select>
-    </label>
     <button class="pillbtn" id="resetBtn">↺ 重置</button>
-    <span class="hint">提示：切播放狀態看入口變化——<b>暫停</b>出現「回報」、<b>播放結束</b>在畫面中央出現「有正確偵測到『人』嗎？」的 👍/👎（可用「事件類型」下拉預覽不同問句）；事件於關閉 sheet 後才送出。可切 A/B 與 <b>直向 / 橫向</b>比較。</span>
+    <span class="hint">提示：B 版在播放器底部（靠右）<b>常駐「這次有抓對嗎？＋ 👍/👎」</b>，跟控制列一起 <b>3 秒自動隱藏</b>——點影片可重新喚出。👍/👎 開 sheet、關閉後才送出。可切 A/B、<b>直向 / 橫向</b>。</span>
   </div>
 
   <div class="layout">
@@ -213,35 +196,24 @@
         <div class="navbar"><span class="back">‹</span>10:03:09<span class="more" id="moreBtn">⋯</span></div>
 
         <div class="video paused" id="video">
-          <div class="sound">聲音 ⋯</div>
           <div class="scene">
             <span class="wm">AlfredCamera</span>
           </div>
+          <div class="tap" id="tapLayer"></div>
+          <div class="sound">聲音 ⋯</div>
           <div class="bigplay" id="bigplay">▶</div>
 
-          <!-- PAUSED → 回報 button -->
+          <!-- variant A: 回報 button（在控制列內，跟著自動隱藏） -->
           <button class="reportbtn" id="reportBtn"><span>💬</span><span>回報</span>
             <div class="pin" id="pin1" style="left:-12px;top:-12px;">1</div>
           </button>
 
-          <!-- ENDED → centered satisfaction feedback -->
-          <div class="endfb" id="endfb">
-            <div class="endfeedback">
-              <div class="q"><span id="endQ">有正確偵測到「人」嗎？</span>
-                <span class="pin" id="pin2" style="position:static;display:inline-flex;vertical-align:middle;margin-left:4px;">2</span>
-              </div>
-              <div class="thumbs">
-                <button class="thumb" id="btnUp" title="正確">
-                  <span class="ic"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg></span>
-                  <span class="lbl">正確</span>
-                </button>
-                <button class="thumb" id="btnDown" title="不正確">
-                  <span class="ic"><svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg></span>
-                  <span class="lbl">不正確</span>
-                </button>
-              </div>
-              <button class="skipbtn" id="skipBtn">略過</button>
-            </div>
+          <!-- variant B: 常駐回饋列「問句 + 👍 👎」（在原回報位置，跟控制列一起自動隱藏） -->
+          <div class="fbrow" id="fbrow">
+            <span class="fbq"><span id="endQ">這次有抓對嗎？</span></span>
+            <button class="tbtn" id="btnUp" title="正確"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg></button>
+            <button class="tbtn" id="btnDown" title="不正確"><svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg></button>
+            <div class="pin" id="pin2" style="position:static;display:inline-flex;vertical-align:middle;margin-left:2px;">2</div>
           </div>
 
           <div class="scrubber">
@@ -312,39 +284,35 @@
       <h2>規格說明</h2>
 
       <div class="card note" id="card1">
-        <h4><span class="ntag">1</span>暫停：出現「回報」按鈕</h4>
-        <p>影片<b>暫停</b>時，於右下角出現「回報」按鈕（沿用原回報入口位置）。</p>
+        <h4><span class="ntag">1</span>常駐回饋列（在原「回報」位置）</h4>
+        <p>把「問句 + 👍 / 👎」放在播放器底部（原回報入口處），<b>無論播放 / 暫停 / 播完都常駐顯示</b>。</p>
         <ul>
-          <li><b>原因：</b>影片還沒播完，不確定用戶意向，不適合此時詢問滿意與否——所以暫停只給「回報」，不給 👍 / 👎。</li>
-          <li>跟播放控制列一起 auto-hide：播放時隱藏。</li>
+          <li>跟播放控制列綁在一起：控制列 <b>3 秒後自動隱藏</b>時一起消失；用戶<b>點影片</b>叫回控制列時，這排也一起回來。</li>
+          <li>A 版（原始）對應位置放的是「回報」按鈕；B 版放 👍 / 👎。</li>
         </ul>
       </div>
 
       <div class="card note" id="card2">
-        <h4><span class="ntag">2</span>播放結束：畫面中央給 👍 / 👎</h4>
-        <p>影片<b>播完</b>後，在畫面中央顯眼處出現「有正確偵測到『人』嗎？」（依 event type 帶入）＋ 👍 / 👎。</p>
+        <h4><span class="ntag">2</span>問句與 👍 / 👎</h4>
+        <p>量「這次<b>偵測判斷對不對</b>」（準確度，不是價值感）。</p>
         <ul>
-          <li><b>原因：</b>用戶看完整段、最清楚發生什麼事時，確認這次<b>偵測判斷對不對</b>（量的是準確度，不是價值感）。</li>
-          <li><b>問句帶入 event type：</b>1 種→「有正確偵測到『人』嗎？」；2 種→「…『人、動態』…」（頓號接）；<b>3 種以上</b>退回通用「這次偵測正確嗎？」。按鈕標示「正確 / 不正確」。</li>
-          <li><b>UI：</b>採<b>單色拇指圖示</b>（類似 FB 讚，去掉黃色 emoji 的娛樂感）；出現時做一次 nudge 微動畫；白字加陰影 + 半透明壓暗底以維持對比。</li>
-          <li><b>略過 / 點遮罩：</b>按「略過」<b>或點卡片以外的遮罩區域</b>都能取消回饋（不送事件），回到可重播的影片畫面（露出中央播放鍵），避免被回饋卡住。</li>
+          <li><b>問句：</b>固定為「<b>這次有抓對嗎？</b>」（等同「Did we get it right?」），不依 event type 變化。按鈕標示「正確 / 不正確」。</li>
+          <li><b>UI：</b>單色拇指圖示（類似 FB 讚，去掉黃色 emoji 的娛樂感）；白字加陰影維持對比。</li>
+          <li><b>送出：</b>點 👍/👎 開對應 sheet，關閉後才送出；一支影片一次、送出後鎖定（highlight 保留、回饋列不消失）。</li>
         </ul>
       </div>
 
       <div class="card note" id="card3">
-        <h4><span class="ntag">3</span>讚 / 倒讚：按過即鎖定、面板消失</h4>
-        <p>給完回饋即視為<b>確實送出</b>，不可切換或反悔——已選 highlight 後整個中央滿意度面板淡出消失。</p>
+        <h4><span class="ntag">3</span>送出後鎖定（回饋列保留）</h4>
+        <p>給完回饋即視為<b>確實送出</b>、一支影片一次定論——已選 highlight 鎖定、不可改；回饋列<b>不消失</b>，仍跟控制列一起自動隱藏 / 喚出。</p>
         <ul>
-          <li>目的：避免用戶切來切去，難以判斷真實評價；一支影片一次定論。</li>
-          <li>送出後以 toast 確認，讓用戶知道已送出。</li>
           <li>事件在關閉 bottom sheet 後才送出（見「資料寫入與埋點」）。</li>
         </ul>
       </div>
 
       <div class="card note" id="card4">
         <h4><span class="ntag">4</span>點 👎 → 自動開回報 bottom sheet</h4>
-        <p>倒讚為負向訊號；<b>同時</b>自動帶出回報表單，讓想說明原因的人無縫接續。不填也沒關係，👎 已記錄。事件於關閉表單後送出，面板隨即收合。</p>
-        <p class="legend">「回報」入口本身改在<b>暫停</b>時出現於右下角；播完的負向回饋則由 👎 直接帶出表單。</p>
+        <p>倒讚為負向訊號；<b>同時</b>自動帶出回報表單，讓想說明原因的人無縫接續。不填也沒關係，👎 已記錄。事件於關閉表單後送出。</p>
       </div>
 
       <div class="card note" id="card5">
@@ -355,7 +323,7 @@
 
       <div class="card note" id="card6">
         <h4><span class="ntag">6</span>👍 後跳「同意分享」dialog</h4>
-        <p>點 👍 即送出正向訊號（面板收合），<b>隨即</b>彈出影片分享詢問「願意分享這支影片，協助我們優化偵測品質嗎？」，用滿意當下的時機爭取分享。</p>
+        <p>點 👍 即選取正向訊號（回饋列保留、送出後鎖定），<b>隨即</b>彈出影片分享詢問「願意分享這支影片，協助我們優化偵測品質嗎？」，用滿意當下的時機爭取分享。</p>
         <ul>
           <li>「同意分享 / 下次再說」雙鍵，明確主動同意（不預設）。</li>
           <li>左上 X 或點背景遮罩皆可關閉，👍 已記錄、不受分享與否影響；無「選填」字樣。</li>
@@ -366,9 +334,9 @@
       <h2 style="margin-top:24px;">授權 vs 互動對照</h2>
       <table class="matrix">
         <tr><th>互動</th><th>出現時機</th><th>需影片授權</th><th>送出方式</th></tr>
-        <tr><td>👍 讚</td><td>播放結束（中央）</td><td><span class="tag yes">免授權</span></td><td>選取 → 開分享 dialog → 關閉時送出</td></tr>
-        <tr><td>👎 倒讚</td><td>播放結束（中央）</td><td><span class="tag yes">免授權</span></td><td>選取 → 開回報 → 關閉時送出</td></tr>
-        <tr><td>💬 回報</td><td>暫停（右下角）</td><td><span class="tag no">需授權</span></td><td>選項/其他 + 勾選授權</td></tr>
+        <tr><td>👍 讚</td><td>常駐（底部，隨控制列隱藏）</td><td><span class="tag yes">免授權</span></td><td>選取 → 開分享 dialog → 關閉時送出</td></tr>
+        <tr><td>👎 倒讚</td><td>常駐（底部，隨控制列隱藏）</td><td><span class="tag yes">免授權</span></td><td>選取 → 開回報 → 關閉時送出</td></tr>
+        <tr><td>💬 回報</td><td>A 版入口（隨控制列隱藏）</td><td><span class="tag no">需授權</span></td><td>選項/其他 + 勾選授權</td></tr>
       </table>
 
       <h2 style="margin-top:24px;">待討論決策點</h2>
@@ -378,12 +346,12 @@
         <div class="opt">好處：一次寫入完整事件（含分享與否 / 回報內容），避免「先送一筆、後補一筆」的重複或拆裂；不填也仍會送出 emoji 訊號。</div>
       </div>
       <div class="card decision">
-        <h4>強調時機</h4>
-        <div class="opt"><b>建議：</b>播放結束時，中央 👍 / 👎 出現做一次 nudge 強調（同一支只一次），避免干擾。</div>
+        <h4>常駐回饋列的干擾</h4>
+        <div class="opt">問句 + 👍/👎 常駐(跟控制列一起 3 秒自動隱藏)。每支都顯示是否造成疲勞 / 誤觸，待觀察；可評估抽樣或只前幾支顯示。</div>
       </div>
       <div class="card decision">
-        <h4>誤觸無法挽回</h4>
-        <div class="opt">鎖死 + 面板消失代表誤觸即定論。可評估誤觸率後，再決定是否要加回「收回」緩衝或其他補救機制。</div>
+        <h4>送出後鎖定</h4>
+        <div class="opt">一支影片一次定論、不可改；回饋列不消失。是否需要可改 / 收回再議。</div>
       </div>
 
       <div class="card decision">
@@ -393,7 +361,7 @@
       </div>
       <div class="card decision">
         <h4>👍/👎 語意維度</h4>
-        <div class="opt"><b>本版定為：</b>偵測是否正確（依 event type 帶入「有正確偵測到『人』嗎？」）。量的是準確度而非價值感——「有沒有幫助」無法對應到判斷對錯。</div>
+        <div class="opt"><b>本版定為：</b>偵測是否正確，問句固定「這次有抓對嗎？」（放棄 event type 差異）。量的是準確度而非價值感——「有沒有幫助」無法對應到判斷對錯。</div>
       </div>
       <div class="card decision">
         <h4>埋點（第一天就上）</h4>
@@ -403,12 +371,12 @@
       <h2 style="margin-top:24px;">A/B 測試規格</h2>
       <div class="card">
         <h4>假設</h4>
-        <p>在現況（暫停才有「回報」）之外，於<b>播放結束</b>加上中央 👍 / 👎 滿意度詢問，能在意向最高的時機收到更多回饋，且不犧牲回報品質。上方工具列可切 A / B 實際比較。</p>
+        <p>在現況（「回報」按鈕）之外，於播放器底部<b>常駐 👍 / 👎</b> 偵測正確性詢問，能用更低門檻、更顯眼的入口收到更多回饋，且不犧牲回報品質。上方工具列可切 A / B 實際比較。</p>
         <h4 style="margin-top:10px;">變體</h4>
-        <p><b>A 對照組：</b>暫停時右下角出現「回報」；播放結束無滿意度詢問（現況）。<br><b>B 實驗組：</b>暫停同樣有「回報」；<b>播放結束</b>在畫面中央加上 👍 / 👎（👎 帶出回報、👍 帶出分享）。</p>
+        <p><b>A 對照組：</b>「回報」按鈕（現況）。<br><b>B 實驗組：</b>播放器底部常駐「這次有抓對嗎？＋ 👍 / 👎」（👎 帶出回報、👍 帶出分享）。兩者都跟控制列一起常駐 / 自動隱藏。</p>
         <h4 style="margin-top:10px;">主要指標</h4>
         <ul>
-          <li><b>入口點擊率（CTR）：</b>點擊回饋入口的觀看數 ÷ 回放觀看總數。A = 點「回報」；B = 點「回報」或播畢的 👍 / 👎。</li>
+          <li><b>入口點擊率（CTR）：</b>點擊回饋入口的觀看數 ÷ 回放觀看總數。A = 點「回報」；B = 點 👍 / 👎。</li>
           <li><b>回報成功率：</b>完成送出回報 ÷ 開啟回報表單。</li>
         </ul>
         <h4 style="margin-top:10px;">次要指標</h4>
@@ -416,7 +384,7 @@
         <h4 style="margin-top:10px;">分流與期間</h4>
         <p>使用者層級隨機分派，同一使用者固定看同一變體；跑到統計顯著或至少 1–2 週（涵蓋週末）。</p>
         <h4 style="margin-top:10px;">注意</h4>
-        <p>B 多了「播畢滿意度」這個 A 沒有的入口，總回饋量本就會偏多——比較時要把「播畢 👍/👎」與「回報」分開定義事件，並看回報品質是否維持。</p>
+        <p>B 多了純 👍/👎 這個 A 沒有的入口，總回饋量本就會偏多——比較時要把「👍/👎」與「回報」分開定義事件，並看回報品質是否維持。</p>
       </div>
     </div>
   </div>
@@ -481,21 +449,19 @@
       </ul>
 
       <h2>7. 功能需求</h2>
-      <h3>7.1 入口時機</h3>
+      <h3>7.1 入口位置與顯示</h3>
       <ul>
-        <li><b>暫停：</b>右下角出現「回報」按鈕（沿用原回報入口位置）。原因：影片還沒播完、不確定用戶意向，不適合此時問滿意與否——暫停只給「回報」。</li>
-        <li><b>播放結束：</b>在畫面中央顯眼處出現「有正確偵測到『人』嗎？」（依 event type 帶入）＋ 👍 / 👎。原因：用戶看完整段、最清楚發生什麼事時，確認這次<b>偵測判斷對不對</b>（量的是準確度）。問句規則：1 種帶入該類型、2 種以頓號接、3 種以上退回通用「這次偵測正確嗎？」。</li>
-        <li>兩者皆跟播放控制列一起 auto-hide（播放時隱藏）；中央 👍 / 👎 出現時做一次 nudge 微動畫。</li>
-        <li><b>直向與橫向（全螢幕）皆適用</b>：橫向時手機 chrome 收起、控制列與回饋入口疊在影片上，相對位置與直向一致。</li>
+        <li><b>位置：</b>「問句 + 👍 / 👎」放在播放器底部（原「回報」入口處），<b>無論播放 / 暫停 / 播完都常駐顯示</b>。</li>
+        <li><b>自動隱藏：</b>跟播放控制列綁在一起——控制列 <b>3 秒後自動隱藏</b>時一起消失；用戶<b>點影片</b>叫回控制列時，這排也一起回來。</li>
+        <li><b>直向與橫向（全螢幕）皆適用</b>：橫向時手機 chrome 收起、控制列與回饋列疊在影片上，相對位置與直向一致。</li>
+        <li>A 版（原始）對應位置放「回報」按鈕；B 版放 👍 / 👎。</li>
       </ul>
       <h3>7.2 讚 / 倒讚行為與 UI</h3>
       <ul>
-        <li>點擊只負責「選取（highlight）+ 開啟對應 bottom sheet」；單選互斥。</li>
-        <li><b>事件一律在使用者關閉 sheet 後才發送</b>（送出、同意分享、下次再說、X、點遮罩皆算關閉），一次寫入完整事件。</li>
-        <li>送出後鎖定、面板淡出消失（一次定論，不可反悔）。</li>
-        <li>👍 / 👎 免影片授權。</li>
-        <li><b>UI：</b>採<b>單色拇指圖示</b>（類似 Facebook 讚，去掉黃色 emoji 的娛樂感）；前方加問句（依 event type 帶入），兩顆標示「正確 / 不正確」。</li>
-        <li><b>略過 / 點遮罩：</b>按「略過」或點卡片以外的遮罩區域都能取消回饋（不送事件），回到可重播的影片畫面（露出中央播放鍵）；白字加陰影 + 壓暗底維持對比。</li>
+        <li>量「這次<b>偵測判斷對不對</b>」（準確度，不是價值感）；問句固定為「<b>這次有抓對嗎？</b>」（等同「Did we get it right?」），不依 event type 變化。按鈕標示「正確 / 不正確」。</li>
+        <li>點擊只負責「選取（highlight）+ 開啟對應 bottom sheet」；<b>事件一律在關閉 sheet 後才發送</b>，一次寫入完整事件。</li>
+        <li>一支影片一次、送出後鎖定（highlight 保留，<b>回饋列不消失</b>，仍跟控制列一起自動隱藏 / 喚出）。</li>
+        <li>👍 / 👎 免影片授權。<b>UI：</b>單色拇指圖示（類似 Facebook 讚，去掉黃色 emoji 的娛樂感）；白字加陰影維持對比。</li>
       </ul>
       <h3>7.3 👎 → 回報表單</h3>
       <p>👎 帶出回報 bottom sheet：可複選問題類型；「其他」展開開放式填答，上限 <b>100 字</b>（對齊 Firebase Analytics 事件參數值上限），接近上限（≥80）才顯示計數器、滿 100 轉紅。詳細回報須勾選影片授權才能送出。</p>
@@ -513,22 +479,23 @@
       </ul>
 
       <h2>9. A/B 測試計畫</h2>
-      <p><b>假設：</b>在現況（暫停才有「回報」）之外，於<b>播放結束</b>加上中央 👍 / 👎 滿意度詢問，能在意向最高的時機收到更多回饋，且不犧牲回報品質。</p>
+      <p><b>假設：</b>在現況（「回報」按鈕）之外，於播放器底部<b>常駐 👍 / 👎</b> 偵測正確性詢問，能用更低門檻、更顯眼的入口收到更多回饋，且不犧牲回報品質。</p>
       <table>
         <tr><th>項目</th><th>A 對照組</th><th>B 實驗組</th></tr>
-        <tr><td>暫停</td><td>右下角「回報」</td><td>右下角「回報」</td></tr>
-        <tr><td>播放結束</td><td>無滿意度詢問</td><td>中央 👍 / 👎（有正確偵測到『人』嗎，依 event type 帶入）</td></tr>
-        <tr><td>進入回報</td><td>點「回報」</td><td>點「回報」或播畢 👎</td></tr>
+        <tr><td>回饋入口</td><td>「回報」按鈕</td><td>常駐「這次有抓對嗎？＋ 👍 / 👎」</td></tr>
+        <tr><td>顯示</td><td colspan="1">跟控制列一起常駐 / 自動隱藏</td><td>跟控制列一起常駐 / 自動隱藏</td></tr>
+        <tr><td>進入回報</td><td>點「回報」</td><td>點 👎</td></tr>
         <tr><td>正向訊號</td><td>無</td><td>👍（+ 同意分享）</td></tr>
       </table>
       <p><b>主要指標：</b>入口 CTR、回報成功率。<b>分流：</b>使用者層級隨機，同一使用者固定看同一變體。<b>期間：</b>跑到統計顯著或至少 1–2 週（涵蓋週末）。</p>
-      <p><b>注意：</b>B 多了「播畢滿意度」這個 A 沒有的入口，總回饋量本就偏多——比較時要把「播畢 👍/👎」與「回報」分開定義事件，並看回報品質是否維持。</p>
+      <p><b>注意：</b>B 多了純 👍/👎 這個 A 沒有的入口，總回饋量本就偏多——比較時要把「👍/👎」與「回報」分開定義事件，並看回報品質是否維持。</p>
 
       <h2>10. 待討論決策點</h2>
       <ul>
-        <li>誤觸無法挽回：鎖死 + 消失，是否視誤觸率加回「收回」緩衝。</li>
+        <li>送出後鎖定：一支影片一次定論、不可改；是否需要可改 / 收回再議。</li>
+        <li>常駐回饋列的干擾：每支都顯示是否造成疲勞 / 誤觸；可評估是否抽樣或只前幾支顯示。</li>
         <li>👍 後跳分享 dialog 的摩擦：是否只對部分流量 / 前幾次顯示。</li>
-        <li>👍 / 👎 語意維度：定為「偵測是否正確」（依 event type 帶入），量準確度而非價值感。</li>
+        <li>👍 / 👎 語意維度：定為「偵測是否正確」，問句固定「這次有抓對嗎？」（放棄 event type 差異，先求統一；若要按型別分析仍可靠埋點的偵測類型欄位切維度）。</li>
         <li>影片授權：是否值得另做提高同意率的優化（拆開、contextual、文案）。</li>
       </ul>
 
@@ -552,7 +519,8 @@
       <p class="legend"><b>同步流程：</b>本 HTML 為單一真實來源（SSOT）。線上原型（<code>jungwei-alfred.github.io/alfred-video-feedback</code>）以 <code>update-video-feedback.sh</code> 手動重發佈；Confluence PD 頁的 PRD 全文為同步鏡像，每次 HTML 的 PRD 有更新即<b>自動同步</b>過去（不需另外確認）。</p>
       <table>
         <tr><th>日期</th><th>變更</th></tr>
-        <tr><td>2026-06-11</td><td>播畢畫面加上「<b>略過</b>」按鈕（取消回饋、不送事件，回到可重播的影片畫面、露出中央播放鍵）；<b>點遮罩區域</b>亦可 dismiss。先移除重播 / 上一支 / 下一支，只保留略過。</td></tr>
+        <tr><td>2026-06-11</td><td>回饋列改為<b>靠右</b>對齊；問句<b>放棄 event type 差異</b>，統一固定為「<b>這次有抓對嗎？</b>」（等同 Did we get it right?），移除事件類型下拉。</td></tr>
+        <tr><td>2026-06-11</td><td>放棄置中面板，改為在播放器底部（原回報位置）<b>常駐「問句 + 👍/👎」</b>，無論播放 / 暫停 / 播完都顯示，跟控制列一起 <b>3 秒自動隱藏</b>、點影片再一起喚出；送出後鎖定、回饋列不消失。移除略過 / 遮罩關閉（改由控制列自動隱藏）。</td></tr>
         <tr><td>2026-06-10</td><td>滿意度問句改為量「偵測是否正確」：依 event type 帶入「有正確偵測到『人』嗎？」（2 種以頓號接、3 種以上退回「這次偵測正確嗎？」），按鈕標示「正確 / 不正確」；移除左上時間戳記；A 版播畢保留中央播放鍵。</td></tr>
         <tr><td>2026-06-10</td><td>版面改為影片置中（上下黑邊）、控制列與底部 bar 置底；新增<b>直向 / 橫向（全螢幕）</b>切換——橫向收起手機 chrome、控制列與入口疊在影片上。</td></tr>
         <tr><td>2026-06-09</td><td>互動改為「暫停→出現回報按鈕」「播放結束→畫面中央 👍 / 👎」；滿意度問句定為「這則影片對你有幫助嗎？」；👍 / 👎 改為單色拇指圖示並加文字說明；A/B 改為比較「播畢是否加滿意度詢問」。</td></tr>
@@ -568,78 +536,61 @@
 <script>
 (function(){
   var video=document.getElementById('video');
-  var reportBtn=document.getElementById('reportBtn'), endfb=document.getElementById('endfb');
+  var reportBtn=document.getElementById('reportBtn'), fbrow=document.getElementById('fbrow');
   var btnUp=document.getElementById('btnUp'), btnDown=document.getElementById('btnDown');
+  var bigplay=document.getElementById('bigplay');
   var toast=document.getElementById('toast');
   var sheet=document.getElementById('sheet'), sheetMask=document.getElementById('sheetMask'), sheetSub=document.getElementById('sheetSub');
-  var state={vote:null, emphasizedOnce:false, committed:false, reportOnly:false, playState:'ended', variant:'B', endSkipped:false};
+  var state={vote:null, committed:false, reportOnly:false, playState:'paused', variant:'B'};
 
   function showToast(m){toast.textContent=m;toast.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){toast.classList.remove('show');},1600);}
-
   function clearSel(){btnUp.classList.remove('sel','dim');btnDown.classList.remove('sel','dim');}
 
-  function emphasizeEnd(){
-    if(state.emphasizedOnce)return;            // nudge the thumbs once when they appear
-    endfb.classList.add('pulse');
-    setTimeout(function(){endfb.classList.remove('pulse');},600);
-    state.emphasizedOnce=true;
+  // ---- controls auto-hide (3s) + tap-to-toggle ----
+  var hideTimer=null;
+  function showControls(persist){
+    clearTimeout(hideTimer);
+    video.classList.remove('hidectrl');
+    if(!persist) hideTimer=setTimeout(function(){video.classList.add('hidectrl');},3000);
   }
+  function hideControls(){clearTimeout(hideTimer);video.classList.add('hidectrl');}
+  document.getElementById('tapLayer').addEventListener('click',function(){
+    if(video.classList.contains('hidectrl')) showControls(); else hideControls();
+  });
 
-  // Render the feedback entries for the current play state + A/B variant.
-  // PAUSED → 回報 button (both variants). ENDED → B: centered 👍/👎；A: 回報 button.
+  // The feedback row (B) / 回報 (A) is PERSISTENT across play states; it only hides together
+  // with the control bar (3s auto-hide), and reappears with the controls on tap.
   function applyState(s){
     state.playState=s;
-    if(s==='playing') state.endSkipped=false;          // replaying gives a fresh chance to rate
     video.classList.toggle('paused', s!=='playing');
     video.classList.toggle('ended', s==='ended');
-    video.classList.toggle('hidectrl', s==='playing'); // controls auto-hide while playing
-    var showReport = !state.committed && (s==='paused' || (s==='ended' && state.variant==='A'));
-    var showEnd    = !state.committed && s==='ended' && state.variant==='B' && !state.endSkipped;
-    reportBtn.classList.toggle('show', showReport);
-    endfb.classList.toggle('show', showEnd);
-    // center replay button: paused, or ended without the panel showing (variant A, or B after 略過)
-    document.getElementById('bigplay').classList.toggle('show', s==='paused' || (s==='ended' && !showEnd && !state.committed));
-    if(showEnd) emphasizeEnd();
+    fbrow.classList.toggle('on', state.variant==='B');     // B: 問句 + 👍/👎
+    reportBtn.classList.toggle('on', state.variant==='A'); // A: 回報
+    bigplay.classList.toggle('show', s!=='playing');        // 中央 ▶ only when paused / ended
+    showControls();   // changing state reveals controls + restarts the 3s timer
   }
 
-  // 略過 / 點 mask：取消回饋、回到可重播的影片畫面（露出中央播放鍵，不送事件）
-  function skipEnd(){state.endSkipped=true;applyState('ended');}
-  document.getElementById('skipBtn').addEventListener('click',skipEnd);
-  endfb.addEventListener('click',function(e){ if(e.target===endfb) skipEnd(); }); // 點卡片以外的遮罩
   document.querySelectorAll('#stateSeg button').forEach(function(b){b.addEventListener('click',function(){
     document.querySelectorAll('#stateSeg button').forEach(function(x){x.classList.remove('active');});b.classList.add('active');
     applyState(b.dataset.state);
   });});
-  document.getElementById('bigplay').addEventListener('click',function(){applyState('playing');});
+  bigplay.addEventListener('click',function(){applyState('playing');});
   document.getElementById('playSm').addEventListener('click',function(){applyState(state.playState==='playing'?'paused':'playing');});
 
-  function hideFeedback(){endfb.classList.remove('show');reportBtn.classList.remove('show');}
-
-  // The vote EVENT only fires after the user dismisses the bottom sheet — never on the
-  // initial tap. Tapping 👍/👎 just selects + opens the sheet; commitVote() sends it.
-  function commitVote(){
-    if(state.vote && !state.committed){
-      state.committed=true;
-      setTimeout(hideFeedback,160);   // hide the satisfaction panel once the event is sent
-    }
-  }
-
+  // votes — event fires only after the bottom sheet closes; one vote per video (locks, row stays)
+  function commitVote(){ if(state.vote && !state.committed) state.committed=true; }
   btnUp.addEventListener('click',function(){
-    if(state.vote)return;
+    if(state.committed)return;
     state.vote='up';clearSel();btnUp.classList.add('sel');btnDown.classList.add('dim');
-    openUp();                         // open share dialog — event sent when it closes
+    showControls(true);openUp();      // open share dialog — event sent when it closes
   });
   btnDown.addEventListener('click',function(){
-    if(state.vote)return;
+    if(state.committed)return;
     state.vote='down';clearSel();btnDown.classList.add('sel');btnUp.classList.add('dim');
-    openSheet(true);                  // open report sheet — event sent when it closes
+    showControls(true);openSheet(true);  // open report sheet — event sent when it closes
   });
   document.getElementById('moreBtn').addEventListener('click',function(){showToast('More ▸ 提供影片反饋（既有深層入口）');openSheet(false);});
-  // PAUSED 回報 button (and variant A end-screen) — opens report directly, no vote
-  reportBtn.addEventListener('click',function(){
-    if(state.committed)return;
-    state.reportOnly=true;openSheet(false);
-  });
+  reportBtn.addEventListener('click',function(){state.reportOnly=true;openSheet(false);}); // variant A entry
 
   function openSheet(fromDownvote){
     sheetSub.textContent=fromDownvote?'想告訴我們是哪裡不好嗎？（選填，可複選）':'協助我們了解這支影片有哪些問題（可複選）';
@@ -683,14 +634,13 @@
   submit.addEventListener('click',function(){
     if(!submit.classList.contains('ready'))return;
     closeSheet();
-    if(state.vote==='down'){commitVote();showToast('已送出回饋，感謝協助 🙏');}        // 👎 + report
-    else if(state.reportOnly){state.committed=true;showToast('已送出回報，感謝協助 🙏');setTimeout(hideFeedback,200);} // 回報 entry
-    else{showToast('已送出詳細回報，感謝協助 🙏');}                                      // More-menu entry
+    if(state.vote==='down'){commitVote();showToast('已送出回饋，感謝協助 🙏');}  // 👎 + report
+    else{showToast('已送出回報，感謝協助 🙏');}                                  // 回報 / More
   });
 
   // reset
   function resetAll(silent){
-    state.vote=null;state.emphasizedOnce=false;state.committed=false;state.reportOnly=false;state.endSkipped=false;clearSel();closeSheet();closeUp();
+    state.vote=null;state.committed=false;state.reportOnly=false;clearSel();closeSheet();closeUp();
     chips.forEach(function(c){c.classList.remove('on');});otherChip.classList.remove('on');otherText.value='';otherText.classList.remove('show');
     charCount.classList.remove('show','max');charCount.textContent='0/100';
     consent.checked=false;refresh();applyState(state.playState);if(!silent)showToast('已重置');
@@ -702,7 +652,7 @@
     document.querySelectorAll('#variantSeg button').forEach(function(x){x.classList.remove('active');});b.classList.add('active');
     state.variant=b.dataset.variant;
     resetAll(true);
-    showToast(b.dataset.variant==='A'?'切到 A：原始（暫停才有回報）':'切到 B：新版（播完給 👍/👎）');
+    showToast(b.dataset.variant==='A'?'切到 A：原始（回報）':'切到 B：新版（👍/👎 常駐回饋列）');
   });});
 
   // annotations
@@ -724,18 +674,6 @@
     viewPrd.hidden=!prd;viewProto.hidden=prd;
   });});
 
-  // event-type → satisfaction question (inject detected type; ≥3 types fall back to generic)
-  var eventSel=document.getElementById('eventSel'), endQ=document.getElementById('endQ');
-  function eventQuestion(){
-    var t=eventSel.value.split(',');
-    if(t.length===1) return '有正確偵測到「'+t[0]+'」嗎？';
-    if(t.length===2) return '有正確偵測到「'+t[0]+'、'+t[1]+'」嗎？';
-    return '這次偵測正確嗎？';   // 3+ types: generic
-  }
-  function updateEndQ(){endQ.textContent=eventQuestion();}
-  eventSel.addEventListener('change',updateEndQ);
-  updateEndQ();
-
   // orientation: portrait / landscape (fullscreen). Same interactions, shared logic.
   var phone=document.querySelector('.phone'), layout=document.querySelector('.layout'), fsBtn=document.getElementById('fsBtn');
   function setOrient(o){
@@ -748,8 +686,9 @@
   document.querySelectorAll('#orientSeg button').forEach(function(b){b.addEventListener('click',function(){setOrient(b.dataset.orient);});});
   fsBtn.addEventListener('click',function(){setOrient(phone.classList.contains('landscape')?'portrait':'landscape');});
 
-  // start at "ended" to showcase the centered satisfaction feedback
-  applyState('ended');
+  // start paused with controls + feedback row visible (don't auto-hide on first view)
+  applyState('paused');
+  showControls(true);
 })();
 </script>
 </body>
