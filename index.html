@@ -19,6 +19,8 @@
   .toolbar .seg button{border:0;background:#fff;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--muted);}
   .toolbar .seg button.active{background:var(--accent);color:#fff;}
   .toolbar .hint{font-size:12.5px;color:var(--muted);}
+  .toolbar .evt{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);}
+  .toolbar .evt select{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:#fff;cursor:pointer;}
   .pillbtn{background:#eef0f2;color:#333;border:1px solid var(--line);border-radius:18px;padding:8px 14px;font-size:13px;cursor:pointer;}
 
   .layout{display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:start;}
@@ -159,7 +161,7 @@
 <div class="wrap">
   <header class="page">
     <h1>影片回饋 — 互動原型與規格 <span style="color:var(--accent);font-size:14px;">v2</span></h1>
-    <p>影片<b>暫停</b>時右下角出現「回報」；<b>播放結束</b>時在畫面中央出現「這則影片對你有幫助嗎？」＋單色 👍 / 👎。👍 帶出影片「同意分享」dialog、👎 帶出回報表單；事件在關閉 bottom sheet 後才送出，按過即鎖定、面板淡出（不可反悔）。</p>
+    <p>影片<b>暫停</b>時右下角出現「回報」；<b>播放結束</b>時在畫面中央出現「有正確偵測到『人』嗎？」（依 event type 帶入）＋單色 👍 / 👎。👍 帶出影片「同意分享」dialog、👎 帶出回報表單；事件在關閉 bottom sheet 後才送出，按過即鎖定、面板淡出（不可反悔）。</p>
   </header>
 
   <div class="tabs" id="tabs">
@@ -186,8 +188,19 @@
       <button data-orient="portrait" class="active">直向</button>
       <button data-orient="landscape">橫向</button>
     </div>
+    <label class="evt">事件類型
+      <select id="eventSel">
+        <option value="人">人</option>
+        <option value="車">車</option>
+        <option value="寵物">寵物</option>
+        <option value="聲音">聲音</option>
+        <option value="動態">動態</option>
+        <option value="人,動態">人＋動態（多重）</option>
+        <option value="人,寵物,聲音">人＋寵物＋聲音（三重）</option>
+      </select>
+    </label>
     <button class="pillbtn" id="resetBtn">↺ 重置</button>
-    <span class="hint">提示：切播放狀態看入口變化——<b>暫停</b>出現「回報」、<b>播放結束</b>在畫面中央出現「這則影片對你有幫助嗎？」的 👍/👎；事件於關閉 sheet 後才送出。可切 A/B 與 <b>直向 / 橫向</b>（或點播放列右下角的全螢幕圖示）比較。</span>
+    <span class="hint">提示：切播放狀態看入口變化——<b>暫停</b>出現「回報」、<b>播放結束</b>在畫面中央出現「有正確偵測到『人』嗎？」的 👍/👎（可用「事件類型」下拉預覽不同問句）；事件於關閉 sheet 後才送出。可切 A/B 與 <b>直向 / 橫向</b>比較。</span>
   </div>
 
   <div class="layout">
@@ -211,17 +224,17 @@
 
           <!-- ENDED → centered satisfaction feedback -->
           <div class="endfb" id="endfb">
-            <div class="q">這則影片對你有幫助嗎？
+            <div class="q"><span id="endQ">有正確偵測到「人」嗎？</span>
               <span class="pin" id="pin2" style="position:static;display:inline-flex;vertical-align:middle;margin-left:4px;">2</span>
             </div>
             <div class="thumbs">
-              <button class="thumb" id="btnUp" title="有幫助">
+              <button class="thumb" id="btnUp" title="正確">
                 <span class="ic"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg></span>
-                <span class="lbl">有幫助</span>
+                <span class="lbl">正確</span>
               </button>
-              <button class="thumb" id="btnDown" title="沒幫助">
+              <button class="thumb" id="btnDown" title="不正確">
                 <span class="ic"><svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg></span>
-                <span class="lbl">沒幫助</span>
+                <span class="lbl">不正確</span>
               </button>
             </div>
           </div>
@@ -304,10 +317,11 @@
 
       <div class="card note" id="card2">
         <h4><span class="ntag">2</span>播放結束：畫面中央給 👍 / 👎</h4>
-        <p>影片<b>播完</b>後，在畫面中央顯眼處出現「這則影片對你有幫助嗎？」＋ 👍 / 👎。</p>
+        <p>影片<b>播完</b>後，在畫面中央顯眼處出現「有正確偵測到『人』嗎？」（依 event type 帶入）＋ 👍 / 👎。</p>
         <ul>
-          <li><b>原因：</b>在用戶真的看完後、相對顯眼的地方詢問滿意與否，命中意向最高的時機。</li>
-          <li><b>UI：</b>採<b>單色拇指圖示</b>（類似 FB 讚，去掉黃色 emoji 的娛樂感），並加上文字說明「這則影片對你有幫助嗎？」；出現時做一次 nudge 微動畫。</li>
+          <li><b>原因：</b>用戶看完整段、最清楚發生什麼事時，確認這次<b>偵測判斷對不對</b>（量的是準確度，不是價值感）。</li>
+          <li><b>問句帶入 event type：</b>1 種→「有正確偵測到『人』嗎？」；2 種→「…『人、動態』…」（頓號接）；<b>3 種以上</b>退回通用「這次偵測正確嗎？」。按鈕標示「正確 / 不正確」。</li>
+          <li><b>UI：</b>採<b>單色拇指圖示</b>（類似 FB 讚，去掉黃色 emoji 的娛樂感）；出現時做一次 nudge 微動畫。</li>
         </ul>
       </div>
 
@@ -373,7 +387,7 @@
       </div>
       <div class="card decision">
         <h4>👍/👎 語意維度</h4>
-        <div class="opt"><b>建議：</b>收斂為單一維度（影片是否有幫助），引導語明確，否則大盤難解讀。</div>
+        <div class="opt"><b>本版定為：</b>偵測是否正確（依 event type 帶入「有正確偵測到『人』嗎？」）。量的是準確度而非價值感——「有沒有幫助」無法對應到判斷對錯。</div>
       </div>
       <div class="card decision">
         <h4>埋點（第一天就上）</h4>
@@ -464,7 +478,7 @@
       <h3>7.1 入口時機</h3>
       <ul>
         <li><b>暫停：</b>右下角出現「回報」按鈕（沿用原回報入口位置）。原因：影片還沒播完、不確定用戶意向，不適合此時問滿意與否——暫停只給「回報」。</li>
-        <li><b>播放結束：</b>在畫面中央顯眼處出現「這則影片對你有幫助嗎？」＋ 👍 / 👎。原因：用戶真的看完後，在顯眼處詢問滿意度，命中意向最高的時機。</li>
+        <li><b>播放結束：</b>在畫面中央顯眼處出現「有正確偵測到『人』嗎？」（依 event type 帶入）＋ 👍 / 👎。原因：用戶看完整段、最清楚發生什麼事時，確認這次<b>偵測判斷對不對</b>（量的是準確度）。問句規則：1 種帶入該類型、2 種以頓號接、3 種以上退回通用「這次偵測正確嗎？」。</li>
         <li>兩者皆跟播放控制列一起 auto-hide（播放時隱藏）；中央 👍 / 👎 出現時做一次 nudge 微動畫。</li>
         <li><b>直向與橫向（全螢幕）皆適用</b>：橫向時手機 chrome 收起、控制列與回饋入口疊在影片上，相對位置與直向一致。</li>
       </ul>
@@ -474,7 +488,7 @@
         <li><b>事件一律在使用者關閉 sheet 後才發送</b>（送出、同意分享、下次再說、X、點遮罩皆算關閉），一次寫入完整事件。</li>
         <li>送出後鎖定、面板淡出消失（一次定論，不可反悔）。</li>
         <li>👍 / 👎 免影片授權。</li>
-        <li><b>UI：</b>採<b>單色拇指圖示</b>（類似 Facebook 讚，去掉黃色 emoji 的娛樂感）；前方加文字說明「這則影片對你有幫助嗎？」。</li>
+        <li><b>UI：</b>採<b>單色拇指圖示</b>（類似 Facebook 讚，去掉黃色 emoji 的娛樂感）；前方加問句（依 event type 帶入），兩顆標示「正確 / 不正確」。</li>
       </ul>
       <h3>7.3 👎 → 回報表單</h3>
       <p>👎 帶出回報 bottom sheet：可複選問題類型；「其他」展開開放式填答，上限 <b>100 字</b>（對齊 Firebase Analytics 事件參數值上限），接近上限（≥80）才顯示計數器、滿 100 轉紅。詳細回報須勾選影片授權才能送出。</p>
@@ -496,7 +510,7 @@
       <table>
         <tr><th>項目</th><th>A 對照組</th><th>B 實驗組</th></tr>
         <tr><td>暫停</td><td>右下角「回報」</td><td>右下角「回報」</td></tr>
-        <tr><td>播放結束</td><td>無滿意度詢問</td><td>中央 👍 / 👎（這則影片對你有幫助嗎）</td></tr>
+        <tr><td>播放結束</td><td>無滿意度詢問</td><td>中央 👍 / 👎（有正確偵測到『人』嗎，依 event type 帶入）</td></tr>
         <tr><td>進入回報</td><td>點「回報」</td><td>點「回報」或播畢 👎</td></tr>
         <tr><td>正向訊號</td><td>無</td><td>👍（+ 同意分享）</td></tr>
       </table>
@@ -507,7 +521,7 @@
       <ul>
         <li>誤觸無法挽回：鎖死 + 消失，是否視誤觸率加回「收回」緩衝。</li>
         <li>👍 後跳分享 dialog 的摩擦：是否只對部分流量 / 前幾次顯示。</li>
-        <li>👍 / 👎 語意維度：建議收斂為「影片是否有幫助」。</li>
+        <li>👍 / 👎 語意維度：定為「偵測是否正確」（依 event type 帶入），量準確度而非價值感。</li>
         <li>影片授權：是否值得另做提高同意率的優化（拆開、contextual、文案）。</li>
       </ul>
 
@@ -531,6 +545,7 @@
       <p class="legend"><b>同步流程：</b>本 HTML 為單一真實來源（SSOT）。線上原型（<code>jungwei-alfred.github.io/alfred-video-feedback</code>）以 <code>update-video-feedback.sh</code> 手動重發佈；Confluence PD 頁的 PRD 全文為同步鏡像，每次 HTML 的 PRD 有更新即<b>自動同步</b>過去（不需另外確認）。</p>
       <table>
         <tr><th>日期</th><th>變更</th></tr>
+        <tr><td>2026-06-10</td><td>滿意度問句改為量「偵測是否正確」：依 event type 帶入「有正確偵測到『人』嗎？」（2 種以頓號接、3 種以上退回「這次偵測正確嗎？」），按鈕標示「正確 / 不正確」；移除左上時間戳記；A 版播畢保留中央播放鍵。</td></tr>
         <tr><td>2026-06-10</td><td>版面改為影片置中（上下黑邊）、控制列與底部 bar 置底；新增<b>直向 / 橫向（全螢幕）</b>切換——橫向收起手機 chrome、控制列與入口疊在影片上。</td></tr>
         <tr><td>2026-06-09</td><td>互動改為「暫停→出現回報按鈕」「播放結束→畫面中央 👍 / 👎」；滿意度問句定為「這則影片對你有幫助嗎？」；👍 / 👎 改為單色拇指圖示並加文字說明；A/B 改為比較「播畢是否加滿意度詢問」。</td></tr>
         <tr><td>2026-06-09</td><td>回報選項「不正確的事件偵測類型」拆分為「不正確的事件類別」與「不正確的物體位置標記」。</td></tr>
@@ -694,6 +709,18 @@
     var prd=b.dataset.view==='prd';
     viewPrd.hidden=!prd;viewProto.hidden=prd;
   });});
+
+  // event-type → satisfaction question (inject detected type; ≥3 types fall back to generic)
+  var eventSel=document.getElementById('eventSel'), endQ=document.getElementById('endQ');
+  function eventQuestion(){
+    var t=eventSel.value.split(',');
+    if(t.length===1) return '有正確偵測到「'+t[0]+'」嗎？';
+    if(t.length===2) return '有正確偵測到「'+t[0]+'、'+t[1]+'」嗎？';
+    return '這次偵測正確嗎？';   // 3+ types: generic
+  }
+  function updateEndQ(){endQ.textContent=eventQuestion();}
+  eventSel.addEventListener('change',updateEndQ);
+  updateEndQ();
 
   // orientation: portrait / landscape (fullscreen). Same interactions, shared logic.
   var phone=document.querySelector('.phone'), layout=document.querySelector('.layout'), fsBtn=document.getElementById('fsBtn');
