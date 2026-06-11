@@ -41,9 +41,10 @@
   .video.hidectrl .reportbtn{opacity:0;pointer-events:none;}
 
   /* ENDED → centered satisfaction feedback (monochrome thumbs) */
-  .endfb{position:absolute;inset:0;z-index:7;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,0,0,.45);}
+  .endfb{position:absolute;inset:0;z-index:7;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(0,0,0,.5);cursor:pointer;}
   .endfb.show{display:flex;}
-  .endfb .q{color:#fff;font-size:15px;font-weight:600;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.55);}
+  .endfeedback{display:flex;flex-direction:column;align-items:center;gap:12px;cursor:default;}
+  .endfb .q{color:#fff;font-size:15px;font-weight:600;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.6);}
   .endfb .thumbs{display:flex;gap:20px;}
   .thumb{display:flex;flex-direction:column;align-items:center;gap:6px;background:transparent;border:0;cursor:pointer;transition:.18s;}
   .thumb .ic{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.6);transition:.18s;}
@@ -53,6 +54,7 @@
   .thumb.sel .ic{background:#fff;border-color:#fff;}
   .thumb.sel .ic svg{fill:#1f2329;}
   .thumb.dim{opacity:.38;}
+  .skipbtn{background:transparent;border:0;color:rgba(255,255,255,.78);font-size:12.5px;cursor:pointer;text-decoration:underline;padding:2px 6px;}
   @keyframes nudge{0%{transform:scale(1);}30%{transform:scale(1.14);}60%{transform:scale(.97);}100%{transform:scale(1);}}
   .endfb.pulse .thumb .ic{animation:nudge .55s ease;}
 
@@ -224,18 +226,21 @@
 
           <!-- ENDED → centered satisfaction feedback -->
           <div class="endfb" id="endfb">
-            <div class="q"><span id="endQ">有正確偵測到「人」嗎？</span>
-              <span class="pin" id="pin2" style="position:static;display:inline-flex;vertical-align:middle;margin-left:4px;">2</span>
-            </div>
-            <div class="thumbs">
-              <button class="thumb" id="btnUp" title="正確">
-                <span class="ic"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg></span>
-                <span class="lbl">正確</span>
-              </button>
-              <button class="thumb" id="btnDown" title="不正確">
-                <span class="ic"><svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg></span>
-                <span class="lbl">不正確</span>
-              </button>
+            <div class="endfeedback">
+              <div class="q"><span id="endQ">有正確偵測到「人」嗎？</span>
+                <span class="pin" id="pin2" style="position:static;display:inline-flex;vertical-align:middle;margin-left:4px;">2</span>
+              </div>
+              <div class="thumbs">
+                <button class="thumb" id="btnUp" title="正確">
+                  <span class="ic"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg></span>
+                  <span class="lbl">正確</span>
+                </button>
+                <button class="thumb" id="btnDown" title="不正確">
+                  <span class="ic"><svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg></span>
+                  <span class="lbl">不正確</span>
+                </button>
+              </div>
+              <button class="skipbtn" id="skipBtn">略過</button>
             </div>
           </div>
 
@@ -321,7 +326,8 @@
         <ul>
           <li><b>原因：</b>用戶看完整段、最清楚發生什麼事時，確認這次<b>偵測判斷對不對</b>（量的是準確度，不是價值感）。</li>
           <li><b>問句帶入 event type：</b>1 種→「有正確偵測到『人』嗎？」；2 種→「…『人、動態』…」（頓號接）；<b>3 種以上</b>退回通用「這次偵測正確嗎？」。按鈕標示「正確 / 不正確」。</li>
-          <li><b>UI：</b>採<b>單色拇指圖示</b>（類似 FB 讚，去掉黃色 emoji 的娛樂感）；出現時做一次 nudge 微動畫。</li>
+          <li><b>UI：</b>採<b>單色拇指圖示</b>（類似 FB 讚，去掉黃色 emoji 的娛樂感）；出現時做一次 nudge 微動畫；白字加陰影 + 半透明壓暗底以維持對比。</li>
+          <li><b>略過 / 點遮罩：</b>按「略過」<b>或點卡片以外的遮罩區域</b>都能取消回饋（不送事件），回到可重播的影片畫面（露出中央播放鍵），避免被回饋卡住。</li>
         </ul>
       </div>
 
@@ -489,6 +495,7 @@
         <li>送出後鎖定、面板淡出消失（一次定論，不可反悔）。</li>
         <li>👍 / 👎 免影片授權。</li>
         <li><b>UI：</b>採<b>單色拇指圖示</b>（類似 Facebook 讚，去掉黃色 emoji 的娛樂感）；前方加問句（依 event type 帶入），兩顆標示「正確 / 不正確」。</li>
+        <li><b>略過 / 點遮罩：</b>按「略過」或點卡片以外的遮罩區域都能取消回饋（不送事件），回到可重播的影片畫面（露出中央播放鍵）；白字加陰影 + 壓暗底維持對比。</li>
       </ul>
       <h3>7.3 👎 → 回報表單</h3>
       <p>👎 帶出回報 bottom sheet：可複選問題類型；「其他」展開開放式填答，上限 <b>100 字</b>（對齊 Firebase Analytics 事件參數值上限），接近上限（≥80）才顯示計數器、滿 100 轉紅。詳細回報須勾選影片授權才能送出。</p>
@@ -545,6 +552,7 @@
       <p class="legend"><b>同步流程：</b>本 HTML 為單一真實來源（SSOT）。線上原型（<code>jungwei-alfred.github.io/alfred-video-feedback</code>）以 <code>update-video-feedback.sh</code> 手動重發佈；Confluence PD 頁的 PRD 全文為同步鏡像，每次 HTML 的 PRD 有更新即<b>自動同步</b>過去（不需另外確認）。</p>
       <table>
         <tr><th>日期</th><th>變更</th></tr>
+        <tr><td>2026-06-11</td><td>播畢畫面加上「<b>略過</b>」按鈕（取消回饋、不送事件，回到可重播的影片畫面、露出中央播放鍵）；<b>點遮罩區域</b>亦可 dismiss。先移除重播 / 上一支 / 下一支，只保留略過。</td></tr>
         <tr><td>2026-06-10</td><td>滿意度問句改為量「偵測是否正確」：依 event type 帶入「有正確偵測到『人』嗎？」（2 種以頓號接、3 種以上退回「這次偵測正確嗎？」），按鈕標示「正確 / 不正確」；移除左上時間戳記；A 版播畢保留中央播放鍵。</td></tr>
         <tr><td>2026-06-10</td><td>版面改為影片置中（上下黑邊）、控制列與底部 bar 置底；新增<b>直向 / 橫向（全螢幕）</b>切換——橫向收起手機 chrome、控制列與入口疊在影片上。</td></tr>
         <tr><td>2026-06-09</td><td>互動改為「暫停→出現回報按鈕」「播放結束→畫面中央 👍 / 👎」；滿意度問句定為「這則影片對你有幫助嗎？」；👍 / 👎 改為單色拇指圖示並加文字說明；A/B 改為比較「播畢是否加滿意度詢問」。</td></tr>
@@ -564,7 +572,7 @@
   var btnUp=document.getElementById('btnUp'), btnDown=document.getElementById('btnDown');
   var toast=document.getElementById('toast');
   var sheet=document.getElementById('sheet'), sheetMask=document.getElementById('sheetMask'), sheetSub=document.getElementById('sheetSub');
-  var state={vote:null, emphasizedOnce:false, committed:false, reportOnly:false, playState:'ended', variant:'B'};
+  var state={vote:null, emphasizedOnce:false, committed:false, reportOnly:false, playState:'ended', variant:'B', endSkipped:false};
 
   function showToast(m){toast.textContent=m;toast.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){toast.classList.remove('show');},1600);}
 
@@ -581,17 +589,23 @@
   // PAUSED → 回報 button (both variants). ENDED → B: centered 👍/👎；A: 回報 button.
   function applyState(s){
     state.playState=s;
-    video.classList.toggle('paused', s!=='playing');   // bigplay shows only when paused (not ended)
+    if(s==='playing') state.endSkipped=false;          // replaying gives a fresh chance to rate
+    video.classList.toggle('paused', s!=='playing');
     video.classList.toggle('ended', s==='ended');
     video.classList.toggle('hidectrl', s==='playing'); // controls auto-hide while playing
     var showReport = !state.committed && (s==='paused' || (s==='ended' && state.variant==='A'));
-    var showEnd    = !state.committed && s==='ended' && state.variant==='B';
+    var showEnd    = !state.committed && s==='ended' && state.variant==='B' && !state.endSkipped;
     reportBtn.classList.toggle('show', showReport);
     endfb.classList.toggle('show', showEnd);
-    // center play button: paused (both), and ended in variant A (original = replay button kept)
-    document.getElementById('bigplay').classList.toggle('show', s==='paused' || (s==='ended' && state.variant==='A'));
+    // center replay button: paused, or ended without the panel showing (variant A, or B after 略過)
+    document.getElementById('bigplay').classList.toggle('show', s==='paused' || (s==='ended' && !showEnd && !state.committed));
     if(showEnd) emphasizeEnd();
   }
+
+  // 略過 / 點 mask：取消回饋、回到可重播的影片畫面（露出中央播放鍵，不送事件）
+  function skipEnd(){state.endSkipped=true;applyState('ended');}
+  document.getElementById('skipBtn').addEventListener('click',skipEnd);
+  endfb.addEventListener('click',function(e){ if(e.target===endfb) skipEnd(); }); // 點卡片以外的遮罩
   document.querySelectorAll('#stateSeg button').forEach(function(b){b.addEventListener('click',function(){
     document.querySelectorAll('#stateSeg button').forEach(function(x){x.classList.remove('active');});b.classList.add('active');
     applyState(b.dataset.state);
@@ -676,7 +690,7 @@
 
   // reset
   function resetAll(silent){
-    state.vote=null;state.emphasizedOnce=false;state.committed=false;state.reportOnly=false;clearSel();closeSheet();closeUp();
+    state.vote=null;state.emphasizedOnce=false;state.committed=false;state.reportOnly=false;state.endSkipped=false;clearSel();closeSheet();closeUp();
     chips.forEach(function(c){c.classList.remove('on');});otherChip.classList.remove('on');otherText.value='';otherText.classList.remove('show');
     charCount.classList.remove('show','max');charCount.textContent='0/100';
     consent.checked=false;refresh();applyState(state.playState);if(!silent)showToast('已重置');
